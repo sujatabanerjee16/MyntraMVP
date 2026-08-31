@@ -2180,10 +2180,12 @@ function IconMyntraM() {
           <stop offset="100%" stopColor="#f218a8" />
         </linearGradient>
       </defs>
-      <ellipse cx="10.5" cy="22" rx="6.6" ry="19" transform="rotate(-20 10.5 22)" fill="url(#myn-magenta)" />
-      <ellipse cx="22" cy="21.2" rx="6.6" ry="19" transform="rotate(20 22 21.2)" fill="url(#myn-coral)" />
-      <ellipse cx="34" cy="21.2" rx="6.6" ry="19" transform="rotate(-20 34 21.2)" fill="url(#myn-orange)" />
-      <ellipse cx="45.5" cy="22" rx="6.6" ry="19" transform="rotate(20 45.5 22)" fill="url(#myn-pink)" />
+      <g transform="translate(0 42) scale(1 -1)">
+        <ellipse cx="10.5" cy="22" rx="6.6" ry="19" transform="rotate(-20 10.5 22)" fill="url(#myn-magenta)" />
+        <ellipse cx="22" cy="21.2" rx="6.6" ry="19" transform="rotate(20 22 21.2)" fill="url(#myn-coral)" />
+        <ellipse cx="34" cy="21.2" rx="6.6" ry="19" transform="rotate(-20 34 21.2)" fill="url(#myn-orange)" />
+        <ellipse cx="45.5" cy="22" rx="6.6" ry="19" transform="rotate(20 45.5 22)" fill="url(#myn-pink)" />
+      </g>
     </svg>
   );
 }

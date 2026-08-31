@@ -24,6 +24,15 @@ describe("shopper http api", () => {
     return `http://127.0.0.1:${addr.port}`;
   }
 
+  it("GET / returns service info", async () => {
+    const origin = await listen();
+    const res = await fetch(`${origin}/`);
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as { ok: boolean; service: string };
+    expect(json.ok).toBe(true);
+    expect(json.service).toBe("myntra-wishlist-api");
+  });
+
   it("GET /health returns ok", async () => {
     const origin = await listen();
     const res = await fetch(`${origin}/health`);

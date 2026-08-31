@@ -22,6 +22,15 @@ export function createServer() {
     }),
   );
 
+  app.get("/", (_req, res) => {
+    res.json({
+      ok: true,
+      service: "myntra-wishlist-api",
+      health: "/health",
+      wishlist: "/wishlist",
+    });
+  });
+
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   });

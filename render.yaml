@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: myntra-wishlist-api
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    healthCheckPath: /health
+    buildCommand: npm install && npm run build:server
+    startCommand: npm run start:server
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: CRON_SECRET
+        sync: false
+      - key: DEMO_SECRET
+        sync: false

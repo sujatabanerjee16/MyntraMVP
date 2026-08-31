@@ -13,7 +13,8 @@ import {
   type NotificationPrefs,
   type WishlistBucketId,
 } from "../domain/models";
-import { createShopperRuntime, type ShopperRuntime } from "../runtime";
+import { createAppRuntime, type ShopperRuntime } from "../runtime";
+import { awaitApi, isThenable, peekApi, thenApi } from "../thenApi";
 import {
   PERSONAS,
   SITE_HEROES,
@@ -51,6 +52,19 @@ type TagSheet =
   | { mode: "add"; itemId: string }
   | { mode: "edit"; itemId: string };
 
+function emptyShopper() {
+  return {
+    wishlist: [] as WishlistView[],
+    restocking: [] as WishlistView[],
+    dead: [] as WishlistView[],
+    inbox: [] as InboxRow[],
+    bag: null as WishlistView | null,
+    bagAddons: [] as CatalogProduct[],
+    catalog: [] as CatalogProduct[],
+    prefs: { priceDropAlerts: true, sizeRestockAlerts: true, occasionReminders: true } as NotificationPrefs,
+  };
+}
+
 function readShopper(runtime: ShopperRuntime, occasionOnly = false) {
   const list = unwrap(runtime.api.getWishlist(occasionOnly ? "occasion" : undefined));
   const bagState = unwrap(runtime.api.getBag());
@@ -66,8 +80,26 @@ function readShopper(runtime: ShopperRuntime, occasionOnly = false) {
   };
 }
 
+async function readShopperAsync(runtime: ShopperRuntime, occasionOnly = false) {
+  const list = await awaitApi(Promise.resolve(runtime.api.getWishlist(occasionOnly ? "occasion" : undefined)));
+  const bagState = await awaitApi(Promise.resolve(runtime.api.getBag()));
+  const inbox = await awaitApi(Promise.resolve(runtime.api.getInbox()));
+  const catalog = await awaitApi(Promise.resolve(runtime.api.getCatalog()));
+  const prefs = await awaitApi(Promise.resolve(runtime.api.getPreferences()));
+  return {
+    wishlist: list.items,
+    restocking: list.restocking,
+    dead: list.dead,
+    inbox: inbox.items,
+    bag: bagState.item,
+    bagAddons: bagState.addons,
+    catalog: catalog.products,
+    prefs,
+  };
+}
+
 export function ShopperApp({ runtime: injected }: { runtime?: ShopperRuntime }) {
-  const runtime = useMemo(() => injected ?? createShopperRuntime(), [injected]);
+  const runtime = useMemo(() => injected ?? createAppRuntime(), [injected]);
   return (
     <ShopperRuntimeProvider runtime={runtime}>
       <Shell />
@@ -78,7 +110,13 @@ export function ShopperApp({ runtime: injected }: { runtime?: ShopperRuntime }) 
 function Shell() {
   const runtime = useShopperRuntime();
   const [screen, setScreen] = useState<Screen>({ name: "home" });
-  const [data, setData] = useState(() => readShopper(runtime));
+  const [data, setData] = useState(() => {
+    try {
+      return readShopper(runtime);
+    } catch {
+      return emptyShopper();
+    }
+  });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [sheet, setSheet] = useState<TagSheet | null>(null);
@@ -93,11 +131,14 @@ function Shell() {
   const persona = PERSONAS.find((row) => row.id === personaId) ?? PERSONAS[0];
 
   function refresh() {
-    setData(readShopper(runtime, occasionOnly));
+    void readShopperAsync(runtime, occasionOnly).then(setData);
   }
 
   useEffect(() => {
-    setData(readShopper(runtime, occasionOnly));
+    void Promise.resolve(runtime.hydrate()).then(() => {
+      setPersonaId(runtime.store.personaId);
+      return readShopperAsync(runtime, occasionOnly);
+    }).then(setData);
   }, [runtime, occasionOnly]);
 
   const { wishlist, restocking, dead, inbox, bag, bagAddons, catalog, prefs } = data;
@@ -113,20 +154,21 @@ function Shell() {
   }
 
   function pickPersona(id: string) {
-    runtime.switchPersona(id);
-    const next = runtime.store.persona();
-    setPersonaId(next.id);
-    setActiveCat(next.defaultCat);
-    setQuery("");
-    setSheet(null);
-    setInboxOpen(false);
-    setDrawerOpen(false);
-    setLockOpen(false);
-    setQuiet(null);
-    setCouponOn(false);
-    setSurface("web");
-    setScreen({ name: "home" });
-    refresh();
+    void Promise.resolve(runtime.switchPersona(id)).then(() => {
+      const next = runtime.store.persona();
+      setPersonaId(next.id);
+      setActiveCat(next.defaultCat);
+      setQuery("");
+      setSheet(null);
+      setInboxOpen(false);
+      setDrawerOpen(false);
+      setLockOpen(false);
+      setQuiet(null);
+      setCouponOn(false);
+      setSurface("web");
+      setScreen({ name: "home" });
+      refresh();
+    });
   }
 
   function goHome() {
@@ -154,33 +196,47 @@ function Shell() {
   }
 
   function startAdd(product: CatalogProduct) {
-    const added = unwrap(runtime.api.addItem(product, null, null));
-    setSheet({ mode: "add", itemId: added.item.id });
-    setScreen({ name: "wishlist", focusId: added.item.id });
-    refresh();
+    thenApi(Promise.resolve(runtime.api.addItem(product, null, null)), (added) => {
+      setSheet({ mode: "add", itemId: added.item.id });
+      setScreen({ name: "wishlist", focusId: added.item.id });
+      refresh();
+    });
   }
 
   function addArrivalToBag(product: CatalogProduct) {
     const existing = wishlist.find((row) => row.productId === product.productId)?.id;
-    const itemId = existing ?? unwrap(runtime.api.addItem(product, null, null)).item.id;
-    runtime.api.addToBag(itemId);
-    setDrawerOpen(false);
-    setInboxOpen(false);
-    setSheet(null);
-    setScreen({ name: "bag" });
-    refresh();
+    if (existing) {
+      thenApi(Promise.resolve(runtime.api.addToBag(existing)), () => {
+        setDrawerOpen(false);
+        setInboxOpen(false);
+        setSheet(null);
+        setScreen({ name: "bag" });
+        refresh();
+      });
+      return;
+    }
+    thenApi(Promise.resolve(runtime.api.addItem(product, null, null)), (added) => {
+      thenApi(Promise.resolve(runtime.api.addToBag(added.item.id)), () => {
+        setDrawerOpen(false);
+        setInboxOpen(false);
+        setSheet(null);
+        setScreen({ name: "bag" });
+        refresh();
+      });
+    });
   }
 
   function openInboxRow(row: InboxRow) {
-    unwrap(runtime.api.openNotification(row.id));
-    setInboxOpen(false);
-    setLockOpen(false);
-    if (row.type === "occasion") {
-      setScreen({ name: "wishlist", occasionOnly: true, focusId: row.itemIds[0] });
-    } else {
-      setScreen({ name: "pdp", itemId: row.itemIds[0], highlight: true });
-    }
-    refresh();
+    thenApi(Promise.resolve(runtime.api.openNotification(row.id)), () => {
+      setInboxOpen(false);
+      setLockOpen(false);
+      if (row.type === "occasion") {
+        setScreen({ name: "wishlist", occasionOnly: true, focusId: row.itemIds[0] });
+      } else {
+        setScreen({ name: "pdp", itemId: row.itemIds[0], highlight: true });
+      }
+      refresh();
+    });
   }
 
   function applyPush(result: { sent: number; quiet: string | null }) {
@@ -253,31 +309,37 @@ function Shell() {
               onOpenPdp={(id) => setScreen({ name: "pdp", itemId: id })}
               onOpenCatalog={(sku) => setScreen({ name: "catalog", sku })}
               onAddToBag={(id) => {
-                runtime.api.addToBag(id);
-                setScreen({ name: "bag" });
-                refresh();
+                thenApi(Promise.resolve(runtime.api.addToBag(id)), () => {
+                  setScreen({ name: "bag" });
+                  refresh();
+                });
               }}
               onEditTag={(id) => setSheet({ mode: "edit", itemId: id })}
               onRemove={(id) => {
-                runtime.api.removeItem(id);
-                refresh();
+                thenApi(Promise.resolve(runtime.api.removeItem(id)), () => refresh());
               }}
               onSeeSimilar={(id) => {
-                runtime.api.dismissDead(id);
-                setScreen({ name: "similar", fromId: id });
-                refresh();
+                thenApi(Promise.resolve(runtime.api.dismissDead(id)), () => {
+                  setScreen({ name: "similar", fromId: id });
+                  refresh();
+                });
               }}
             />
           ) : null}
           {screen.name === "pdp" ? (
             <Pdp
-              item={wishlist.find((row) => row.id === screen.itemId) ?? findAny(runtime, screen.itemId)}
+              item={
+                wishlist.find((row) => row.id === screen.itemId) ??
+                restocking.find((row) => row.id === screen.itemId) ??
+                dead.find((row) => row.id === screen.itemId)
+              }
               highlight={screen.highlight}
               onBack={() => goWishlist({ focusId: screen.itemId })}
               onAddToBag={(id) => {
-                runtime.api.addToBag(id);
-                setScreen({ name: "bag" });
-                refresh();
+                thenApi(Promise.resolve(runtime.api.addToBag(id)), () => {
+                  setScreen({ name: "bag" });
+                  refresh();
+                });
               }}
             />
           ) : null}
@@ -306,10 +368,17 @@ function Shell() {
               persona={persona}
               onBack={() => setScreen({ name: "bag" })}
               onPlaceOrder={(sku) => {
-                if (sku) unwrap(runtime.api.addOrderAddon(sku));
-                const result = unwrap(runtime.api.checkoutSuccess());
-                refresh();
-                setScreen({ name: "success", orderId: result.order_id, extras: result.extras });
+                const finish = (result: { order_id: string; extras: string[] }) => {
+                  refresh();
+                  setScreen({ name: "success", orderId: result.order_id, extras: result.extras });
+                };
+                if (!sku) {
+                  thenApi(Promise.resolve(runtime.api.checkoutSuccess()), finish);
+                  return;
+                }
+                thenApi(Promise.resolve(runtime.api.addOrderAddon(sku)), () => {
+                  thenApi(Promise.resolve(runtime.api.checkoutSuccess()), finish);
+                });
               }}
             />
           ) : null}
@@ -322,8 +391,7 @@ function Shell() {
               first={persona.first}
               onBack={() => goWishlist()}
               onToggle={(key, value) => {
-                runtime.api.setPreferences({ [key]: value });
-                refresh();
+                thenApi(Promise.resolve(runtime.api.setPreferences({ [key]: value })), () => refresh());
               }}
             />
           ) : null}
@@ -429,7 +497,18 @@ function Shell() {
                 ))
               )}
               <DemoPushes
-                onPush={(run) => applyPush(pushOutcome(run()))}
+                onPush={(run) => {
+                  void Promise.resolve(run()).then((result) =>
+                    applyPush(
+                      pushOutcome(
+                        result as {
+                          ok: boolean;
+                          body?: { sent?: number; reason?: string; suppressed?: string[] };
+                        },
+                      ),
+                    ),
+                  );
+                }}
               />
             </div>
           </div>
@@ -439,9 +518,10 @@ function Shell() {
           <TagSheet
             sheet={sheet}
             onPick={(tag, occasionDate) => {
-              runtime.api.updateTag(sheet.itemId, tag, occasionDate);
-              setSheet(null);
-              refresh();
+              thenApi(Promise.resolve(runtime.api.updateTag(sheet.itemId, tag, occasionDate)), () => {
+                setSheet(null);
+                refresh();
+              });
             }}
             onDismiss={() => {
               setSheet(null);
@@ -527,18 +607,19 @@ function Shell() {
             type="button"
             className="ghost reset-demo"
             onClick={() => {
-              runtime.reset();
-              setPersonaId("sujata");
-              setSheet(null);
-              setInboxOpen(false);
-              setLockOpen(false);
-              setQuiet(null);
-              setCouponOn(false);
-              setQuery("");
-              setActiveCat("WOMEN");
-              setSurface("web");
-              setScreen({ name: "home" });
-              refresh();
+              void Promise.resolve(runtime.reset()).then(() => {
+                setPersonaId("sujata");
+                setSheet(null);
+                setInboxOpen(false);
+                setLockOpen(false);
+                setQuiet(null);
+                setCouponOn(false);
+                setQuery("");
+                setActiveCat("WOMEN");
+                setSurface("web");
+                setScreen({ name: "home" });
+                refresh();
+              });
             }}
           >
             Reset demo
@@ -660,15 +741,6 @@ function Shell() {
       </div>
       )}
     </div>
-  );
-}
-
-function findAny(runtime: ShopperRuntime, itemId: string): WishlistView | undefined {
-  const list = unwrap(runtime.api.getWishlist());
-  return (
-    list.items.find((row) => row.id === itemId) ??
-    list.restocking.find((row) => row.id === itemId) ??
-    list.dead.find((row) => row.id === itemId)
   );
 }
 
@@ -958,7 +1030,6 @@ function Wishlist({
   onRemove: (id: string) => void;
   onSeeSimilar: (id: string) => void;
 }) {
-  const runtime = useShopperRuntime();
   const focusRestocking = Boolean(focusId && restocking.some((row) => row.id === focusId));
   const [tab, setTab] = useState<"available" | "restocking">(focusRestocking ? "restocking" : "available");
   const [bucket, setBucket] = useState<"all" | WishlistBucketId>("all");
@@ -974,11 +1045,6 @@ function Wishlist({
   const shownDead = dead.filter(inBucket);
   const shown = tab === "available" ? shownItems : shownRestocking;
   const total = allLive.length;
-
-  function looksFor(itemId: string): JeansLook[] {
-    const result = runtime.api.getLookPairs(itemId);
-    return result.ok ? result.body.items : [];
-  }
 
   return (
     <>
@@ -1070,7 +1136,6 @@ function Wishlist({
           <WishlistCard
             key={item.id}
             item={item}
-            looks={looksFor(item.id)}
             focused={focusId === item.id}
             onOpenPdp={onOpenPdp}
             onOpenCatalog={onOpenCatalog}
@@ -1116,7 +1181,6 @@ function DeadNudge({
 
 function WishlistCard({
   item,
-  looks,
   focused,
   onOpenPdp,
   onOpenCatalog,
@@ -1124,14 +1188,30 @@ function WishlistCard({
   onEditTag,
 }: {
   item: WishlistView;
-  looks: JeansLook[];
   focused: boolean;
   onOpenPdp: (id: string) => void;
   onOpenCatalog: (sku: string) => void;
   onAddToBag: (id: string) => void;
   onEditTag: (id: string) => void;
 }) {
+  const runtime = useShopperRuntime();
+  const [looks, setLooks] = useState<JeansLook[]>(() => peekApi(runtime.api.getLookPairs(item.id))?.items ?? []);
   const press = useLongPress(() => onEditTag(item.id));
+
+  useEffect(() => {
+    const result = runtime.api.getLookPairs(item.id);
+    if (!isThenable(result)) {
+      setLooks(result.ok ? result.body.items : []);
+      return;
+    }
+    let cancelled = false;
+    void result.then((row) => {
+      if (!cancelled && row.ok) setLooks(row.body.items);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [runtime, item.id]);
   return (
     <div className={`wish-block${looks.length ? " has-looks" : ""}`}>
       <article
@@ -1356,13 +1436,14 @@ function Checkout({
         className="cta"
         type="button"
         onClick={() => {
-          const recs = unwrap(runtime.api.getOrderRecs());
-          if (recs.picks.length === 0) {
-            onPlaceOrder();
-            return;
-          }
-          setPick(0);
-          setOffer(recs);
+          thenApi(Promise.resolve(runtime.api.getOrderRecs()), (recs) => {
+            if (recs.picks.length === 0) {
+              onPlaceOrder();
+              return;
+            }
+            setPick(0);
+            setOffer(recs);
+          });
         }}
       >
         Place order
@@ -1566,7 +1647,23 @@ function StylistPicks({
   onAdd: (product: CatalogProduct) => void;
 }) {
   const runtime = useShopperRuntime();
-  const items = unwrap(runtime.api.getStylistRecs(5)).items;
+  const [items, setItems] = useState<StylistRec[]>(() => peekApi(runtime.api.getStylistRecs(5))?.items ?? []);
+
+  useEffect(() => {
+    const result = runtime.api.getStylistRecs(5);
+    if (!isThenable(result)) {
+      setItems(result.ok ? result.body.items : []);
+      return;
+    }
+    let cancelled = false;
+    void result.then((row) => {
+      if (!cancelled && row.ok) setItems(row.body.items);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [runtime]);
+
   return (
     <>
       <div className="subhead">
@@ -1631,7 +1728,31 @@ function Similar({
   onAdd: (product: CatalogProduct) => void;
 }) {
   const runtime = useShopperRuntime();
-  const { products, query } = unwrap(runtime.api.getSimilar(fromId));
+  const initial = peekApi(runtime.api.getSimilar(fromId));
+  const [products, setProducts] = useState<CatalogProduct[]>(initial?.products ?? []);
+  const [query, setQuery] = useState(initial?.query ?? "similar");
+
+  useEffect(() => {
+    const result = runtime.api.getSimilar(fromId);
+    if (!isThenable(result)) {
+      if (result.ok) {
+        setProducts(result.body.products);
+        setQuery(result.body.query);
+      }
+      return;
+    }
+    let cancelled = false;
+    void result.then((row) => {
+      if (!cancelled && row.ok) {
+        setProducts(row.body.products);
+        setQuery(row.body.query);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [runtime, fromId]);
+
   return (
     <>
       <div className="subhead">
@@ -1926,7 +2047,7 @@ function ShopperSwitch({
 function DemoPushes({
   onPush,
 }: {
-  onPush: (run: () => { ok: boolean; body?: { sent?: number; reason?: string; suppressed?: string[] } }) => void;
+  onPush: (run: () => unknown) => void;
 }) {
   const runtime = useShopperRuntime();
   return (

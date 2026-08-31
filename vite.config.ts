@@ -11,13 +11,11 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(root, "index.html"),
-        shopper: resolve(root, "shopper.html"),
-        discover: resolve(root, "discover.html"),
       },
     },
   },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "server/**/*.test.ts"],
   },
 });

@@ -199,9 +199,28 @@ function param(value: string | string[] | undefined) {
 }
 
 function corsOrigins() {
-  const raw = process.env.CORS_ORIGINS ?? "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:5175,http://127.0.0.1:5175";
+  const raw = process.env.CORS_ORIGINS ?? [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://localhost:5175",
+    "http://127.0.0.1:5175",
+    "https://myntramvp.vercel.app",
+  ].join(",");
   if (raw.trim() === "*") return true;
-  return raw.split(",").map((origin) => origin.trim()).filter(Boolean);
+  const allowed = raw.split(",").map((origin) => origin.trim()).filter(Boolean);
+  return (origin: string | undefined, next: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin) {
+      next(null, true);
+      return;
+    }
+    if (allowed.includes(origin) || /^https:\/\/myntramvp(-[a-z0-9-]+)?\.vercel\.app$/.test(origin)) {
+      next(null, true);
+      return;
+    }
+    next(null, false);
+  };
 }
 
 function send<T>(res: Response, result: ApiResult<T>) {

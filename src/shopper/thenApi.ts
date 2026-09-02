@@ -10,11 +10,15 @@ export function peekApi<T>(result: ApiResult<T> | Promise<ApiResult<T>>): T | un
 }
 
 export function thenApi<T>(result: ApiResult<T> | Promise<ApiResult<T>>, next: (body: T) => void) {
+  const go = (row: ApiResult<T>) => {
+    if (!row.ok) return;
+    next(row.body);
+  };
   if (isThenable(result)) {
-    void result.then((row) => next(unwrap(row)));
+    void result.then(go).catch(() => undefined);
     return;
   }
-  next(unwrap(result));
+  go(result);
 }
 
 export async function awaitApi<T>(result: ApiResult<T> | Promise<ApiResult<T>>): Promise<T> {

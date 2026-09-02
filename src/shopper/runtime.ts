@@ -80,7 +80,8 @@ export function createHttpShopperRuntime(baseUrl: string) {
 
 export function createAppRuntime() {
   const base = import.meta.env.VITE_API_BASE_URL?.trim();
-  if (base) return createHttpShopperRuntime(base);
+  const useHttp = import.meta.env.VITE_SHOPPER_HTTP === "1";
+  if (useHttp && base) return createHttpShopperRuntime(base);
   return createShopperRuntime();
 }
 

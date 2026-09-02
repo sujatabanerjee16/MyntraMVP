@@ -106,6 +106,8 @@ export function inferArticleType(title: string): string {
   if (/jean|denim/.test(t)) return "jeans";
   if (/cargo/.test(t)) return "cargo";
   if (/kurta|anarkali/.test(t)) return "kurta";
+  if (/saree|sari/.test(t)) return "saree";
+  if (/\bbag\b/.test(t) && !/cargo/.test(t)) return "bag";
   if (/\bpolo\b/.test(t)) return "polo";
   if (/shirt/.test(t)) return "shirt";
   if (/t-?shirt|\btee\b/.test(t)) return "tee";
@@ -288,24 +290,23 @@ function reasonFor(
     bits.push(`Pairs with your recent ${types.join(" / ")}`);
   }
   if (price.genuineDiscount && price.dropPct != null) {
-    bits.push(`${Math.round(price.dropPct * 100)}% below its 60-day average`);
+    bits.push(`Priced lower than it has been lately`);
   } else if (price.fakeSale) {
-    bits.push("Listed on sale, but not below its 60-day average");
+    bits.push("On sale, but not cheaper than it has been lately");
   } else if (price.rising) {
-    bits.push("Price has been rising over 60 days");
+    bits.push("Price has been climbing lately");
   }
-  if (fit === "true_to_size") bits.push("Reviews say true to size");
-  else if (fit === "runs_large" && returns.some((row) => row.reason === "too_small")) {
+  if (fit === "runs_large" && returns.some((row) => row.reason === "too_small")) {
     bits.push("Runs large — safer after a too-small return");
   } else if (fit === "runs_small" && returns.some((row) => row.reason === "too_small")) {
-    bits.push("Runs small — weighted down after a sizing return");
+    bits.push("Runs small — similar to a piece you returned");
   } else if (fit === "runs_small") bits.push("Reviews say it runs small");
   else if (fit === "runs_large") bits.push("Reviews say it runs large");
   if (bits.length === 0) {
     if (purchases.length === 0 && price.missing && fit === "unknown") {
-      return "Not enough history, price, or review data — ranked neutrally.";
+      return "A fresh pick while we learn your taste.";
     }
-    return `A ${product.brand} pick from the signals we do have.`;
+    return `A ${product.brand} pick based on what you already wear.`;
   }
   return bits.join(" · ");
 }

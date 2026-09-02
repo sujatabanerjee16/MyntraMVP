@@ -65,8 +65,20 @@ export function createServer() {
     send(res, api.dismissDead(param(req.params.id)));
   });
 
+  app.get("/wishlist/compare", (_req, res) => {
+    send(res, api.getCompareClusters());
+  });
+
+  app.get("/wishlist/compare/:key", (req, res) => {
+    send(res, api.getCompare(param(req.params.key), req.query.inStock === "1"));
+  });
+
   app.get("/wishlist/:id/looks", (req, res) => {
     send(res, api.getLookPairs(param(req.params.id)));
+  });
+
+  app.get("/wishlist/:id/styling", (req, res) => {
+    send(res, api.getStylingLooks(param(req.params.id)));
   });
 
   app.get("/catalog/search", (req, res) => {
@@ -120,6 +132,10 @@ export function createServer() {
 
   app.post("/checkout", (_req, res) => {
     send(res, api.checkoutSuccess());
+  });
+
+  app.get("/orders", (_req, res) => {
+    send(res, api.getOrders());
   });
 
   app.get("/measurement", (_req, res) => {
@@ -183,7 +199,7 @@ function param(value: string | string[] | undefined) {
 }
 
 function corsOrigins() {
-  const raw = process.env.CORS_ORIGINS ?? "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5175";
+  const raw = process.env.CORS_ORIGINS ?? "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:5175,http://127.0.0.1:5175";
   if (raw.trim() === "*") return true;
   return raw.split(",").map((origin) => origin.trim()).filter(Boolean);
 }

@@ -1,6 +1,5 @@
 import {
   alreadySent,
-  canSendPriceDrop,
   canSendRestock,
   clearPassedOccasion,
   isDead,
@@ -16,9 +15,19 @@ import {
   type WishlistItem,
 } from "./domain/models";
 import { jeansLookPairs, type JeansLook } from "./domain/jeansLooks";
+import { similarCatalogProducts } from "./domain/similarItems";
+import { stylingConfidenceLooks, stylingReviews, type StyleReview, type StyleShot } from "./domain/stylingLooks";
 import { recommendForOrder, type OrderRecOffer } from "./domain/orderRecs";
 import { recommendStylist, type StylistRec, type StylistWeights } from "./domain/stylist";
-import { ShopperStore, UNSAVED_CATALOG, allCatalog, searchCatalog as matchCatalog, type CatalogProduct } from "./store";
+import { compareCards, compareClusters, parseClusterKey, type CompareCard, type CompareCluster } from "./domain/compare";
+import {
+  UNSAVED_CATALOG,
+  allCatalog,
+  searchCatalog as matchCatalog,
+  type CatalogProduct,
+  type ShopperOrder,
+  type ShopperStore,
+} from "./store";
 
 export type ApiResult<T> =
   | { ok: true; status: 200; body: T }
@@ -89,12 +98,21 @@ export function createShopperApi(store: ShopperStore, now: () => Date) {
     getSimilar(itemId: string): ApiResult<{ products: CatalogProduct[]; query: string }> {
       const item = store.items.find((row) => row.id === itemId);
       const saved = new Set(store.items.filter((row) => row.status === "active").map((row) => row.productId));
+      const source = item
+        ? {
+            productId: item.productId,
+            brand: item.catalog.brand,
+            title: item.catalog.title,
+            image_url: item.catalog.image_url,
+            category: allCatalog().find((row) => row.productId === item.productId)?.category,
+          }
+        : null;
       return {
         ok: true,
         status: 200,
         body: {
-          query: item ? `${item.catalog.brand} similar` : "similar",
-          products: UNSAVED_CATALOG.filter((row) => !saved.has(row.productId)),
+          query: item ? `${item.catalog.title}` : "similar",
+          products: source ? similarCatalogProducts(source, allCatalog(), saved) : [],
         },
       };
     },
@@ -177,24 +195,7 @@ export function createShopperApi(store: ShopperStore, now: () => Date) {
     },
 
     runPriceCheck(): ApiResult<{ sent: number; suppressed: string[] }> {
-      const suppressed: string[] = [];
-      let sent = 0;
-      for (const item of store.items) {
-        const gate = canSendPriceDrop(item, store.prefs, iso());
-        if (!gate.ok) {
-          if (item.currentPrice < item.priceAtSave) suppressed.push(gate.reason);
-          continue;
-        }
-        item.lastPriceDropAt = iso();
-        push({
-          type: "price_drop",
-          title: "Price Drop on your Wishlist 🎉",
-          body: `${item.catalog.title} just dropped to ${formatInr(item.currentPrice)}. (Was ${formatInr(item.priceAtSave)}) — Sale may not last.`,
-          itemIds: [item.id],
-        });
-        sent += 1;
-      }
-      return { ok: true, status: 200, body: { sent, suppressed } };
+      return { ok: true, status: 200, body: { sent: 0, suppressed: ["disabled"] } };
     },
 
     dropPrice(sku: string, newPrice: number): ApiResult<{ sent: number; suppressed: string[] }> {
@@ -302,11 +303,36 @@ export function createShopperApi(store: ShopperStore, now: () => Date) {
       const item = store.items.find((row) => row.id === store.bagItemId);
       if (item) item.status = "purchased";
       const extras = store.bagAddonSkus
-        .map((sku) => allCatalog().find((row) => row.sku === sku)?.title)
-        .filter((title): title is string => Boolean(title));
+        .map((sku) => allCatalog().find((row) => row.sku === sku))
+        .filter((row): row is CatalogProduct => Boolean(row));
+      const orderId = `MYN${now().getTime()}`;
+      if (item) {
+        store.orders.unshift({
+          id: orderId,
+          placedAt: iso(),
+          items: [
+            {
+              brand: item.catalog.brand,
+              title: item.catalog.title,
+              price: item.currentPrice,
+              image_url: item.catalog.image_url,
+            },
+            ...extras.map((row) => ({
+              brand: row.brand,
+              title: row.title,
+              price: row.price,
+              image_url: row.image_url,
+            })),
+          ],
+        });
+      }
       store.bagItemId = null;
       store.bagAddonSkus = [];
-      return { ok: true, status: 200, body: { order_id: `MYN${now().getTime()}`, extras } };
+      return { ok: true, status: 200, body: { order_id: orderId, extras: extras.map((row) => row.title) } };
+    },
+
+    getOrders(): ApiResult<{ items: ShopperOrder[] }> {
+      return { ok: true, status: 200, body: { items: store.orders } };
     },
 
     getLookPairs(itemId: string): ApiResult<{ items: JeansLook[] }> {
@@ -318,19 +344,50 @@ export function createShopperApi(store: ShopperStore, now: () => Date) {
         status: 200,
         body: {
           items: jeansLookPairs(
-            { productId: item.productId, brand: item.catalog.brand, title: item.catalog.title },
+            {
+              productId: item.productId,
+              brand: item.catalog.brand,
+              title: item.catalog.title,
+              category: allCatalog().find((row) => row.productId === item.productId)?.category,
+            },
             active.map((row) => ({
               id: row.id,
               productId: row.productId,
               status: row.status,
+              stockStatus: row.stockStatus,
               sku: row.sku,
               currentPrice: row.currentPrice,
               catalog: row.catalog,
+              category: allCatalog().find((itemRow) => itemRow.productId === row.productId)?.category,
             })),
             allCatalog(),
           ),
         },
       };
+    },
+
+    getStylingLooks(itemId: string): ApiResult<{ items: StyleShot[]; reviews: StyleReview[] }> {
+      const item = store.items.find((row) => row.id === itemId);
+      if (!item) return { ok: false, status: 404, error: "Not found" };
+      return {
+        ok: true,
+        status: 200,
+        body: { items: stylingConfidenceLooks(item), reviews: stylingReviews(item.catalog.title) },
+      };
+    },
+
+    getCompareClusters(): ApiResult<{ clusters: CompareCluster[] }> {
+      const active = store.items.filter((row) => row.user_id === store.userId && row.status === "active");
+      return { ok: true, status: 200, body: { clusters: compareClusters(active) } };
+    },
+
+    getCompare(key: string, inStockOnly = false): ApiResult<{ cluster: CompareCluster; cards: CompareCard[] }> {
+      const parsed = parseClusterKey(key);
+      if (!parsed) return { ok: false, status: 400, error: "Bad compare key" };
+      const active = store.items.filter((row) => row.user_id === store.userId && row.status === "active");
+      const cluster = compareClusters(active).find((row) => row.key === key);
+      if (!cluster) return { ok: false, status: 404, error: "No cluster" };
+      return { ok: true, status: 200, body: { cluster, cards: compareCards(active, cluster, inStockOnly, store.reviews) } };
     },
 
     getMeasurement(): ApiResult<{ available: false; reason: "not_in_prototype" }> {

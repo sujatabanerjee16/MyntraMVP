@@ -52,7 +52,11 @@ describe("jeans look pairs", () => {
     expect(isJeansItem("Regular Fit Linen Shirt")).toBe(false);
     expect(lookKindOf("Pique Polo T-Shirt")).toBe("top");
     expect(lookKindOf("Court Sneakers")).toBe("shoes");
+    expect(lookKindOf("511 Slim Jeans")).toBe("jeans");
+    expect(lookKindOf("Infant Floral Vest Set", "KIDS")).toBe("top");
     expect(lookKindOf("Floral Printed Wrap Midi Dress")).toBeNull();
+    expect(lookKindOf("Styled Drop Earrings")).toBe("earrings");
+    expect(lookKindOf("Structured Studio Bag")).toBe("bag");
     expect(jeansLookPairs({ ...jeans, title: "Linen Shirt" }, [shirt], [levisTee])).toEqual([]);
   });
 

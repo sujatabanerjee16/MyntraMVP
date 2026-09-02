@@ -1,10 +1,11 @@
-# Myntra Wishlist MVP1 — Implementation
+# Myntra Wishlist — Implementation (Comparison MVP)
 
 **Source of truth:** [Architecture_Wishlist_Reengagement_MVP.md](./Architecture_Wishlist_Reengagement_MVP.md)  
 **PRD:** [ProblemStatement_Solution_MVP.md](./ProblemStatement_Solution_MVP.md)
 
-MVP1 = **F1 context tag** + **F2 price-drop push** + **F3 restock push** + **F4 occasion push** + **F5 dead-item in-app nudge** + **F6 alert prefs**.  
-Not the discovery dashboard. Not UGC-as-the-product. Not compare / folders / fit AI.
+This slice = **F-CMP type clusters + comparison cards**.  
+Companions already in the prototype: **F1 tags** (no price-drop choice), **F3 restock**, **F4 occasion**, **F5 dead in-app**, **F6 prefs**.  
+Not the discovery dashboard. Not stylist-among-saves. Not share-link. Not a price-drop save tag or push.
 
 ---
 
@@ -16,246 +17,190 @@ Not the discovery dashboard. Not UGC-as-the-product. Not compare / folders / fit
 | Engineering | Work + contracts |
 | QA | Demo scripts + [EdgeCases](./EdgeCases_Wishlist_Reengagement_MVP.md) |
 
-**Stack (this repo):** Vite + React + TypeScript. Shopper entry: `/` → `src/shopper/`. In-memory store + cron buttons for proto. No Groq/BGE.
+**Stack (this repo):** Vite + React + TypeScript. Shopper entry: `/` → `src/shopper/` (dev often `http://127.0.0.1:5174/`). In-memory store + cron buttons for proto. No Groq/BGE.
 
 ---
 
 ## 1. Roadmap
 
 ```
-P0 Item model (tag, size, prices, stock)
-  → P1 F1 context tag sheet
-  → P2 F6 notification prefs
-  → P3 F2 price-drop push
-  → P4 F3 size restock push
-  → P5 F4 occasion reminder
-  → P6 F5 dead-item nudge
+P0–P6  Companions (item model, tags, prefs, restock, occasion, dead)
+  → P7 F-CMP clusters + compare page     ← current slice
 ```
 
-F6 ships **before** any F2–F4 send.
+Price-drop **push** (old P3 / F2) is **not** implemented as a send. `runPriceCheck` / `dropPrice` must stay at `sent: 0`.
 
-| Phase | Feature | Depends |
-|-------|---------|---------|
-| **P0** | Schema, seed, wishlist chrome, ⚙️ stub | — |
-| **P1** | F1 tag sheet + chip + long-press edit | P0 |
-| **P2** | F6 three toggles, profile persist | P0 |
-| **P3** | F2 threshold + 48h + deep link | P2 |
-| **P4** | F3 size watch + exact-size ping | P2 |
-| **P5** | F4 date + 7-day batch + filter | P1, P2 |
-| **P6** | F5 60d / discontinued card | P0 |
+| Phase | Feature | Depends | Status in this repo |
+|-------|---------|---------|---------------------|
+| **P0** | Schema, seed, wishlist chrome, ⚙️ | — | Done |
+| **P1** | F1 tag sheet (four tags, no price-drop) | P0 | Done |
+| **P2** | F6 toggles | P0 | Done |
+| **P3** | F2 price-drop send | — | **Out** — do not send |
+| **P4** | F3 exact-size restock | P2 | Done |
+| **P5** | F4 dated occasion batch | P1, P2 | Done |
+| **P6** | F5 dead in-app | P0 | Done |
+| **P7** | **F-CMP compare** | P0 | **This MVP** |
 
-**Minimum demo:** P0–P3 (tag + prefs + price drop). Full PRD DoD = P0–P6.
+**Minimum demo for this slice:** P7 on Sujata (dresses + kurtas), Kabir (shirts), in-stock filter, bag from compare. Companions still demoable.
 
 ---
 
 ## 2. Cross-cutting rules
 
-1. Skip tag → `null`. No re-prompt.
-2. F2/F3/F4 respect F6 immediately.
-3. F5 is **never** a push.
-4. Price: ≥ ₹50 **or** ≥ 5% (smaller bar). Max 1 / item / 48h.
-5. Restock: exact saved size; watch only if OOS **at save**.
-6. Occasion: date required; batch same date; no ping after date passed.
-7. Dead: OOS 60 consecutive days or discontinued; once per item.
+1. Skip tag → `null`. No re-prompt. No price-drop tag on the sheet.
+2. F3/F4 respect F6 immediately.
+3. F5 is **never** a push. Discontinued rows **never** enter compare.
+4. Restock: exact saved size; watch only if OOS **at save**.
+5. Occasion: date required; batch same date; no ping after date passed.
+6. Compare: `{SiteCat}:{article}`, min 2, max 5, no cross-category mix.
+7. Compare cards: this SKU’s photos; reviews without “true to size”; quality without a fake x/10; price as a fact.
 8. Do not show live wishlist→cart % from demo checkout.
 9. Each phase ends with a **demo script**.
 
 ---
 
-## Phase 0 — Item model
+## Phase 0 — Item model *(shipped)*
 
-**Goal:** Rows match PRD `WishlistItem` + stock / size-watch fields.
-
-### Work
-
-- [ ] Fields: `productId`, `priceAtSave`, `currentPrice`, `selectedSize`, `tag`, `occasionDate`, `savedAt`, `stockStatus`, `oosSince`, `sizeWatch`.
-- [ ] Seed: planner user with mixed tags; one OOS-at-save size; one bookmark; one long-OOS / discontinued candidate.
-- [ ] Wishlist layout: title + count, ⚙️, cards (image, brand, name, price, stock, Add to Cart).
-- [ ] Measurement: wishlist→cart **unavailable** until `shop.internal_orders` on.
-
-### Exit
-
-- [ ] Wishlist renders seed items; no fake 15% conversion.
-
-### Demo
-
-1. Open `/`.
-2. Wishlist shows items and stock. No conversion KPI.
-
----
-
-## Phase 1 — F1 Context tag
-
-**Goal:** Save flow tags intent.
+**Goal:** Rows match wishlist + stock / size-watch / catalog category.
 
 ### Work
 
-- [ ] Add to Wishlist → sheet “Saving this for…?” four tags, ≤300ms, auto-dismiss 6s.
-- [ ] Occasion → optional date picker.
-- [ ] Dismiss / timeout → `tag: null`.
-- [ ] Chip on card. Long-press → edit.
-- [ ] `POST /wishlist/:userId/items` includes tag + date.
+- [x] Fields: `productId`, prices, `selectedSize`, `tag`, `occasionDate`, `savedAt`, `stockStatus`, `oosSince`, `sizeWatch`.
+- [x] Seed personas: Sujata, Priya, Kabir.
+- [x] Wishlist chrome + ⚙️.
+- [x] Measurement: wishlist→cart **unavailable**.
 
-### Exit
+### Exit / demo
 
-- [ ] All four tags visible without scroll.
-- [ ] Skip does not re-prompt.
-- [ ] Occasion picker only after 🎉.
-
-### Demo
-
-1. Add an item (or proto “Add to wishlist”).
-2. Tag Price Drop → chip on card.
-3. Add another, dismiss sheet → no chip.
-4. Long-press → change to Occasion + date.
+Open `/`. Wishlist renders. No fake 15%.
 
 ---
 
-## Phase 2 — F6 Prefs
-
-**Goal:** Guardrail before any push.
+## Phase 1 — F1 Context tag *(shipped)*
 
 ### Work
 
-- [ ] Screen: Price Drop / Size Back / Occasion toggles, default ON.
-- [ ] ⚙️ on wishlist header + Profile path (proto: ⚙️ is enough).
-- [ ] PATCH prefs; persist on user profile.
-- [ ] OFF stops that type on the next worker tick (immediate in proto).
-
-### Exit
-
-- [ ] Defaults ON. OFF is respected by later phases.
+- [x] Sheet: Occasion, My size, How it looks on me, Bookmark. **No** Waiting for Price Drop.
+- [x] Skip → `null`. Occasion date optional.
+- [x] Chip + edit. `styling_unsure` → photos of this SKU, reviews without TTS.
 
 ### Demo
 
-1. ⚙️ → all ON.
-2. Turn Price Drop OFF. Later P3 drop does not notify.
+1. Heart a catalog item → four tags, no price-drop.
+2. Skip → no chip. Bookmark → chip only after opening wishlist (home rail hides Bookmark).
 
 ---
 
-## Phase 3 — F2 Price drop
-
-**Goal:** Push when drop meets threshold.
+## Phase 2 — F6 Prefs *(shipped)*
 
 ### Work
 
-- [ ] Worker / proto control: set `currentPrice`.
-- [ ] Gate: threshold + F6 + 48h + active item.
-- [ ] Copy from PRD. Deep link PDP with Add to Cart highlighted.
-- [ ] In proto: inbox/bell stands in for FCM.
-
-### Exit
-
-- [ ] ₹40 drop does **not** fire (unless 5% is smaller — use a high-price SKU to prove ₹50 vs 5%).
-- [ ] Qualifying drop → one card. Second drop inside 48h → no send.
-- [ ] Toggle OFF → no send.
+- [x] Price Drop / Size Back / Occasion toggles. ⚙️ on wishlist.
+- [x] OFF stops F3/F4. Price Drop send is already disabled.
 
 ### Demo
 
-1. Prefs ON. Drop Libas (or seed SKU) past threshold.
-2. Bell → PRD copy → PDP.
-3. Drop again immediately → no second ping.
-4. Toggle OFF, reset, drop → silent.
+⚙️ → turn Size Back off → restock control stays silent.
 
 ---
 
-## Phase 4 — F3 Restock
+## Phase 3 — F2 Price drop *(out of this MVP)*
 
-**Goal:** Exact saved size back in stock.
+- [x] `dropPrice` / `runPriceCheck` return `sent: 0`, `suppressed: ["disabled"]`.
+- [x] No Price drop tab. No inbox “Price Drop on your Wishlist”.
+
+Do **not** add a price-drop tag or push as part of P7.
+
+---
+
+## Phase 4 — F3 Restock *(shipped)*
+
+### Demo
+
+1. Seed Biba size S OOS. Restock S → one “Your size is back.”
+2. Wrong size → silent. Toggle off → silent.
+
+---
+
+## Phase 5 — F4 Occasion *(shipped)*
+
+### Demo
+
+Two items, same date → one batched ping → wishlist filtered to occasion.
+
+---
+
+## Phase 6 — F5 Dead item *(shipped)*
+
+### Demo
+
+Anouk discontinued on **No longer available**. Bell has no dead-item message. Row is **not** in Compare.
+
+---
+
+## Phase 7 — F-CMP Compare *(this slice)*
+
+**Goal:** Same-type live saves, side by side, so the shopper can pick.
 
 ### Work
 
-- [ ] On save, if size OOS → `sizeWatch`.
-- [ ] Worker flips size in stock → F3 if F6 on and not purchased.
-- [ ] Deep link PDP with that size selected.
-- [ ] In-stock-at-save then later OOS → **no** watch.
+- [x] `src/shopper/domain/compare.ts` — `compareClusters`, `compareCards`, `COMPARE_MIN=2`, `COMPARE_MAX=5`.
+- [x] Article + `SiteCat` key; hoodie/jacket/blazer title overrides; skip `other`; skip discontinued.
+- [x] Seed enough same-type SKUs: kurtas for Sujata/Priya; shirts for Kabir (plus existing dresses / linen).
+- [x] Distinct catalog images within a cluster.
+- [x] API: `getCompareClusters`, `getCompare(key, inStockOnly)`.
+- [x] HTTP: `GET /wishlist/compare`, `GET /wishlist/compare/:key?inStock=1` (registered before `/:id`).
+- [x] UI: Compare tab, All-tab banners, Compare page (colour, design, on-body, review, quality, price + Lowest here, stock).
+- [x] In stock only; Not this (session hide); MOVE TO BAG; PDP.
+- [x] Tests: domain + API + UI flow.
+- [ ] Browser pass: Sujata dresses **and** kurtas; Kabir shirts; filter; Not this until fewer than 2 left; bag.
 
 ### Exit
 
-- [ ] Other sizes back → no ping.
-- [ ] Purchase → no re-fire.
-- [ ] Toggle OFF → no send.
+- [ ] Cluster at 2+; cap 5; dead excluded; no Women dress + Kids frock mix.
+- [ ] Cards have no TTS and no fake quality score.
+- [ ] In-stock filter hides watching / OOS.
+- [ ] Bag from compare works.
+- [ ] Docs (this file + PRD + architecture + edge + eval) match the product.
 
-### Demo
+### Demo (P7)
 
-1. Seed OOS size-M item. Flip M in stock → one “Your size is back.”
-2. Flip size L only → silent.
-3. Buy, restock again → silent.
-
----
-
-## Phase 5 — F4 Occasion
-
-**Goal:** One reminder ≤7 days before a dated occasion.
-
-### Work
-
-- [ ] Only if `occasionDate` set.
-- [ ] Proto: “advance clock to 6 days before.”
-- [ ] Batch same date → 1 notification.
-- [ ] Open → wishlist filtered to those items.
-- [ ] Date passed unused → clear tag, no ping.
-
-### Exit
-
-- [ ] Tag without date → no F4.
-- [ ] Two items, one date → one ping.
-- [ ] Past date → no ping.
-
-### Demo
-
-1. Two items, same wedding date.
-2. Jump to T−6 days → one notification.
-3. Open → filtered list.
+1. Open `/` as **Sujata** → Wishlist.
+2. All tab shows banners e.g. **Compare 3 dresses in Women** and **Compare N kurtas in Women**.
+3. Compare tab lists the same clusters.
+4. Open dresses: cards show Colour / Design / On-body / Review / Quality / Stock. No “True to size”. No 8.4/10.
+5. Check **In stock only**. **Not this** on one card. **MOVE TO BAG** on another → Shopping Bag.
+6. Back → open kurtas. Discontinued Anouk is not there (it stays under No longer available).
+7. Profile → **Kabir** → Wishlist → Compare shirts.
 
 ---
 
-## Phase 6 — F5 Dead item
-
-**Goal:** In-app cleanup, no push.
-
-### Work
-
-- [ ] Flag discontinued **or** OOS ≥ 60 days.
-- [ ] Card at **top**: won’t restock · See Similar · Remove.
-- [ ] Shown once per item.
-- [ ] Confirm **no** inbox/push row.
-
-### Exit
-
-- [ ] Card on top. Similar and Remove work.
-- [ ] Dismiss / act → no repeat.
-- [ ] OS notify off → card still there.
-
-### Demo
-
-1. Seed discontinued / 60d OOS item.
-2. Wishlist top card. Remove or Similar.
-3. Bell has no dead-item message.
-
----
-
-## 3. What we will not implement in these phases
+## 3. What we will not implement in P7
 
 - Discovery dashboard / Ask AI
-- Compare-all, duplicate banner, folders, fit AI, social share
+- Stylist-among-saves, share-link, folders, fit AI score
+- Price-drop tag or push
 - Push for dead items
 - Live wishlist→cart from seed checkout
-- UGC gallery as a required MVP1 feature (not in this PRD)
+- Mixing site categories to “fill” a cluster
 
 ---
 
 ## 4. Test matrix
 
-| Case | P0 | P1 | P2 | P3 | P4 | P5 | P6 |
-|------|----|----|----|----|----|----|-----|
-| Skip tag → null | | x | | | | | |
-| Prefs OFF blocks type | | | x | x | x | x | |
-| Threshold / 48h | | | | x | | | |
-| Exact size only | | | | | x | | |
-| Occasion batch + date required | | | | | | x | |
-| Dead in-app only | | | | | | | x |
-| No fake conversion | x | | | | | | x |
+| Case | P1 | P4 | P5 | P6 | P7 |
+|------|----|----|----|----|-----|
+| Skip tag → null | x | | | | |
+| No price-drop tag / send | x | | | | x |
+| Exact size only | | x | | | |
+| Occasion batch + date required | | | x | | |
+| Dead in-app only; not in compare | | | | x | x |
+| Cluster ≥2, cap 5 | | | | | x |
+| No category mix | | | | | x |
+| In-stock filter | | | | | x |
+| No TTS / fake score | | | | | x |
+| Compare → bag | | | | | x |
+| No fake conversion | x | | | x | x |
 
 ---
 
@@ -265,20 +210,22 @@ F6 ships **before** any F2–F4 send.
 |---------|--------|
 | Add to wishlist + tag sheet | P1 |
 | ⚙️ prefs | P2 |
-| Drop price on seed SKU | P3 |
+| Drop price on seed SKU | P3 — updates price **only**, no ping |
 | Restock saved size / other size | P4 |
 | Advance clock (occasion / 60d OOS) | P5 / P6 |
+| Persona switch (Sujata / Priya / Kabir) | P7 demo |
 | Reset demo | P0 |
 
 ---
 
-## 6. Open questions (do not block P0–P2)
+## 6. Open questions (do not block P7)
 
 | Question | Default |
 |----------|---------|
-| Occasion label text if user only picks a date | Use date; title “Occasion” |
-| “See Similar” filter set | Category + gender + price band of the dead item |
-| Units-left in F3 body | Show if inventory API has it; else omit count |
+| Persist “Not this” across refresh | No — session only |
+| Quality when fabric unknown | First review sentence, else “See reviews on the card” |
+| Units-left in F3 body | Show if inventory has it; else omit |
+| Occasion label if user only picks a date | Use date; title “Occasion” |
 
 ---
 
@@ -286,9 +233,8 @@ F6 ships **before** any F2–F4 send.
 
 | Sprint | Focus |
 |--------|--------|
-| 1 | P0 + P1 + P2 |
-| 2 | P3 + P4 |
-| 3 | P5 + P6 + metric wiring |
+| Done | P0–P2, P4–P6, F2 send disabled |
+| This | P7 compare + doc alignment |
 
 ---
 
@@ -296,11 +242,12 @@ F6 ships **before** any F2–F4 send.
 
 Matches PRD § Definition of Done:
 
-- [ ] F1 tag saves, chip, editable, graceful skip
-- [ ] F2 fires on threshold, respects toggle, deep-links PDP
-- [ ] F3 exact size, pre-select, no re-fire after purchase
-- [ ] F4 batches, 7 days before, filters wishlist
-- [ ] F5 in-app top card, Similar + Remove, not a push
-- [ ] F6 three toggles, default ON, profile sync, ⚙️ on wishlist
-- [ ] EdgeCases S0/S1 green for shipped phases
+- [x] F1 four tags, chip, editable, graceful skip; no price-drop option
+- [x] F3 exact size, no re-fire after purchase
+- [x] F4 batches, 7 days before, filters wishlist
+- [x] F5 in-app, Similar + Remove, not a push
+- [x] F6 toggles, ⚙️
+- [ ] F-CMP clusters + cards + filter + Not this + bag; no mix; dead excluded; honest reviews/quality
+- [ ] EdgeCases S0/S1 green for P7 (`EC-COMP-*`)
 - [ ] No invented conversion % in the UI
+- [ ] Five `Doc/*.md` files describe **this** product, not “compare → MVP2”

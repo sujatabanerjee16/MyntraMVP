@@ -55,8 +55,8 @@ textarea {
 
 .shopper-stage.is-web {
   align-items: stretch;
-  padding: 12px 0 0;
-  background: #f4f4f5;
+  padding: 0;
+  background: #fff;
 }
 
 .phone {
@@ -296,7 +296,7 @@ textarea {
 
 .price {
   font-weight: 700;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 .cta,
@@ -330,9 +330,9 @@ textarea {
 .outline-pink,
 .wish-cta {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 4px;
   border-radius: 4px;
-  padding: 9px 12px;
+  padding: 7px 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;

@@ -1,17 +1,19 @@
-# 📦 PRD: Myntra Wishlist — MVP1
-**Product:** Myntra Wishlist Feature — MVP1 Only  
-**Version:** 1.0  
-**Status:** Ready for Development  
-**Platform:** Mobile App (iOS + Android)  
-**Research Base:** 6 User Interviews + 2 Survey Datasets
+# 📦 PRD: Myntra Wishlist — Comparison MVP
+**Product:** Myntra Wishlist — help the shopper **pick among same-type saves**  
+**Version:** 2.0  
+**Status:** Source of truth for the shopper prototype (`/` → `src/shopper/`)  
+**Platform:** Shopper web prototype (Myntra-like site). Mobile app contracts stay compatible.  
+**Research Base:** 6 user interviews + 2 survey datasets; live prototype learning (tags, restock, occasion, dead items)
 
 ---
 
 ## 🧭 North Star
 
-> The wishlist today is a passive parking lot.  
-> MVP1 turns it into an **active buying companion** — by telling users  
-> *why* they saved something, and *when* it's time to act.
+> Shoppers save **two or more of the same kind of thing** (kurtas, dresses, shirts) because they are still choosing.  
+> Today the wishlist groups by **why they saved** (occasion, size, how it looks). It never puts those same-type saves **side by side**.  
+> This MVP’s job is to **help them pick** — colour, design, on-body photos of **that** SKU, reviews, a honest quality signal, price as a fact, stock — then bag one.
+
+Companion jobs (already in the prototype, still required): remember *why* they saved (without treating a sale as the reason), ping when **their size** is back, remind dated occasions, clean dead SKUs in-app, and let 18–24 mute alerts.
 
 ---
 
@@ -25,16 +27,18 @@
 | Shopping Style | Planned, occasion-driven |
 | Wishlist Size | 2–50 items (intentional saves) |
 | Revisit Frequency | Weekly |
-| Why They Wishlist | Waiting for price drops, bank sale combo, upcoming occasions |
-| Primary Trigger to Buy | Sale + bank offer OR occasion deadline |
-| Pain with Wishlist | Saves items, forgets intent, no alert when price drops or size restocks |
-| Representative Users | Ragamayi (289 items, weekly user), Snehi (10 items, occasion-driven), Touqeer (planned, size-watcher) |
+| Why They Wishlist | Same-type shortlists to compare; upcoming occasions; waiting for **their** size |
+| Primary Trigger to Buy | “I can finally see the difference” + occasion deadline + size back |
+| Pain with Wishlist | Saves three kurtas / dresses and still cannot compare them; intent fades; size restock is silent |
+| Representative Users | Prototype: **Sujata**, **Priya**. Research: Ragamayi, Snehi, Touqeer |
 
-**Key verbatims:**
-> *"No notifications when price drops, item is back to stock etc."* — Ragamayi  
-> *"If my size comes in future I get notified, currently it is not there"* — Snehi  
+**Key verbatims (research):**
 > *"I've forgotten why I added it, there should be something that reminds me"* — Snehi  
+> *"If my size comes in future I get notified, currently it is not there"* — Snehi  
 > *"If something is out of stock and they don't intend to restock, wishlist should notify and remove it"* — Ragamayi  
+
+**Key product observation (this MVP):**
+> People do not save three dresses because they want three notifications. They save them because they have not **chosen** yet.
 
 ---
 
@@ -46,47 +50,68 @@
 | Shopping Style | Impulsive, scroll-driven |
 | Wishlist Size | 100–288 items (saves freely, acts rarely) |
 | Revisit Frequency | Rarely |
-| Why They Wishlist | Impulse saves while scrolling, "will look later" |
-| Primary Trigger to Buy | Need-based, not notification-driven |
+| Why They Wishlist | Impulse saves while scrolling, “will look later” |
+| Primary Trigger to Buy | Need-based; a compare surface when they *do* open the list |
 | Pain with Wishlist | Notification overload → app avoidance |
-| ⚠️ Key Constraint | "Myntra should stop sending notifications — I get demotivated opening the app if I get 1000s of notifications" |
-| Representative Users | Candidate 1 (288 items, rarely revisits) |
-
-> **Design implication:** Notifications must be **user-controlled**. This segment needs opt-in granularity, not blast alerts.
+| ⚠️ Key Constraint | Alerts stay **user-controlled**. Compare is in-app — it does not add a push type. |
+| Representative Users | Prototype: **Kabir**. Research: Candidate 1 (288 items) |
 
 ---
 
-## 🔴 Pain Points MVP1 is Solving
+## 🔴 Pain Points this MVP is Solving
 
-> Only P0 pain points. No P1/P2 in this build.
+| ID | Priority | Pain Point | Who Feels It | Evidence |
+|---|---|---|---|---|
+| **PP-CMP** | **P0 (primary)** | Same-kind saves never get a compare surface. List is grouped by save-reason, not garment type. | Both; planners first | Product cut: type clusters + comparison cards |
+| PP3 | P0 companion | No memory of why an item was saved | Both | Snehi; 18–24 forget saves quickly |
+| PP2 | P0 companion | No ping when the **saved size** restocks | 25–35 | Snehi; Touqeer lost a purchase |
+| PP4 | P0 companion | Dead / discontinued items sit forever | 25–35 | Ragamayi |
+| PP5 | P0 guardrail | Notification overload → app avoidance | 18–24 | Candidate 1 |
 
-| ID | Pain Point | Who Feels It | Evidence |
-|---|---|---|---|
-| PP1 | No price drop alert on wishlisted items | 25–35 primarily | Ragamayi verbatim; confirmed by both survey groups |
-| PP2 | No notification when OOS item / saved size is restocked | 25–35 primarily | Snehi verbatim; Touqeer lost a purchase to a competitor because of this |
-| PP3 | No memory of why an item was saved | Both segments | Snehi: *"wishlist is a dead feature"*; 18–24 survey: forget saves quickly |
-| PP4 | Dead/discontinued items stay in wishlist forever, no action nudge | 25–35 primarily | Ragamayi verbatim; items sit OOS for months with no signal |
-| PP5 | Notification overload causing app avoidance | 18–24 segment | Candidate 1: notifications demotivate app opening |
+### Explicitly **not** a save-reason in this MVP
+
+| ID | Why it is out |
+|---|---|
+| Price drop as “why you saved” | Monetary incentive is not a context tag. Price is a **fact on the compare card** (incl. “Lowest here”), not a chip like Occasion / My size. |
+| Price-drop **push** | Not this slice. Prototype `runPriceCheck` does not send. Do not resurrect “Waiting for Price Drop” on the tag sheet. |
+| Fake wishlist→cart % | `shop.internal_orders` is off. Do not paint ~15% or 0% as live conversion. |
 
 ---
 
-## ✅ What MVP1 Builds (Scope)
+## ✅ What this MVP Builds (Scope)
 
-| Feature | Pain Point Solved | Priority |
+| Feature | Pain | Priority |
 |---|---|---|
-| F1: Context Tag on Save | PP3 | P0 |
-| F2: Price Drop Push Notification | PP1 | P0 |
-| F3: Size / Restock Push Notification | PP2 | P0 |
-| F4: Occasion Reminder Notification | PP3 + buying trigger | P0 |
-| F5: Dead Item In-App Nudge | PP4 | P0 |
-| F6: Notification Preference Settings | PP5 | P0 (required guardrail) |
+| **F-CMP: Type clusters + comparison cards** | PP-CMP | **P0 primary** |
+| F1: Context tag on save | PP3 | P0 companion |
+| F3: Size / restock push | PP2 | P0 companion |
+| F4: Occasion reminder push | PP3 + deadline | P0 companion |
+| F5: Dead item in-app nudge | PP4 | P0 companion |
+| F6: Notification preference settings | PP5 | P0 guardrail |
 
-### ❌ OUT OF SCOPE — MVP1
-- Side-by-side comparison of wishlist items → MVP2
-- Duplicate detection banner → MVP2
-- Wishlist folders / organisation → Post-MVP
-- AI size/fit recommendations → Post-MVP
-- Social wishlist sharing → Post-MVP
+### Tag set (F1) — what the shopper may pick
+
+| Tag | Chip / tab | Push? |
+|---|---|---|
+| `occasion` | Occasion | F4 if a date is set |
+| `size_wait` | My size | F3 if size was OOS **at save** |
+| `styling_unsure` | How it looks on me | None — customer photos + reviews on the card / PDP |
+| `bookmarking` | Bookmark | None |
+| `null` | (no chip) | Skip / timeout |
+
+`price_drop` is **not** offered on the sheet. It may exist on the type for older rows; it must not appear as a tab or save option.
+
+### ❌ OUT OF SCOPE — this slice
+
+- Stylist-among-saves (“which of these would suit me”)
+- Share-link / social wishlist
+- Duplicate-detection banner as a separate product
+- Wishlist folders
+- AI size/fit as a score
+- Mixing **Women dresses** with **Kids frocks** (or any cross-`SiteCat` mix)
+- Price-drop save tag or price-drop push
+- Discovery-engine dashboard
+- Fake conversion % in the UI
 
 ---
 
@@ -94,338 +119,244 @@
 
 ---
 
-### F1: Context Tag on Save
-**Solves:** PP3 — Users forget why they saved an item
+### F-CMP: Compare same-type saves
+**Solves:** PP-CMP — the shortlist never becomes a decision
 
 #### User Story
-> As a user, when I add an item to my wishlist, I want to tag my intent  
-> so that when I come back, I know exactly why it's there.
+> As a shopper, when I have saved two or more of the **same article in the same site category**, I want them side by side so I can pick one without scrolling a list grouped by occasion vs size vs styling.
 
-#### Flow
-```
-User taps "Add to Wishlist"
-        ↓
-Bottom sheet slides up (non-blocking):
-  "Saving this for…?"
-  [ 🎉 Upcoming Occasion ]
-  [ 💸 Waiting for Price Drop ]
-  [ 📦 Waiting for My Size ]
-  [ 🤔 Just Bookmarking ]
-        ↓
-User taps a tag  →  Tag saved on wishlist card
-User dismisses   →  Item saves with no tag (graceful skip)
-```
+#### Clustering
 
-#### UI Details
-- Bottom sheet: 30% screen height, slides up in 250ms
-- Auto-dismiss: 6 seconds if no interaction
-- Tag displayed: Small coloured chip below item name on wishlist card
-- Tag editable: Long press on wishlist card → edit tag option
+- Key: `{site category}:{article type}` e.g. `WOMEN:dress`, `WOMEN:kurta`, `MEN:shirt`.
+- **Trigger:** ≥ **2** live items in the cluster.
+- **Cap:** **5** newest saves (by `savedAt`).
+- **Live only:** `status === active` and `stockStatus !== discontinued`. Dead SKUs stay on the F5 nudge — they never enter compare.
+- **Do not mix categories.** Women dresses ≠ Kids frocks. Men shirts ≠ Studio shirts if those are different `SiteCat` values.
+- Skip `article === other` (cannot label the cluster honestly).
 
-#### Special: Occasion Date
-- If user selects 🎉 Upcoming Occasion → secondary prompt appears:  
-  *"When is the occasion?"* → Date picker (optional, skippable)
-- Occasion date feeds into F4 (Occasion Reminder)
+#### Surfaces
 
-#### Data Model
-```typescript
-interface WishlistItem {
-  id: string;
-  productId: string;
-  priceAtSave: number;
-  selectedSize: string | null;
-  tag: 'occasion' | 'price_drop' | 'size_wait' | 'bookmarking' | null;
-  occasionDate: Date | null;
-  savedAt: Date;
-}
-```
+1. Wishlist **Compare** tab — one row per cluster (“Compare 3 dresses in Women”).
+2. Wishlist **All** tab — banners to the same clusters.
+3. **Compare page** — cards in a grid.
+
+#### Card fields (required)
+
+| Field | Rule |
+|---|---|
+| Colour | From the piece (title / pictured colour) — not a generic palette |
+| Design | Cut / print / silhouette of **this** SKU |
+| On-body photo | **This SKU**. Libas uses dedicated customer photos. Others use this product’s image — never a different dress or saree passed off as this one |
+| Review | Stars + comment **without** “true to size” |
+| Quality | Fabric or a short review line. **No fake 8.4/10** |
+| Price | Current INR. Flag **Lowest here** among the visible cards. Price is a fact, not a save-reason |
+| Stock / size | In stock + saved size, or watching size / OOS. Discontinued never appears |
+
+#### Controls
+
+- **In stock only** — hide OOS / size-watch rows.
+- **Not this** — hide a card for this visit. If fewer than 2 remain, stop comparing (empty copy).
+- **MOVE TO BAG** — in-stock only; same bag path as the rest of the site.
+- Tap image → PDP of **that** item.
 
 #### Acceptance Criteria
-- [ ] Bottom sheet appears within 300ms of "Add to Wishlist" tap
-- [ ] All 4 tags visible without scrolling
-- [ ] Dismissing saves item with `tag: null` — no retry, no friction
-- [ ] Tag chip visible on wishlist card
-- [ ] Tag editable via long press
-- [ ] Occasion date picker appears only when 🎉 is selected
+
+- [ ] Sujata sees **dresses and kurtas**; Priya the same; Kabir **shirts** (when ≥2).
+- [ ] Cluster does not include the discontinued Anouk kurta.
+- [ ] Cards do not show “True to size” or a made-up quality score.
+- [ ] In-stock filter hides watching / OOS rows.
+- [ ] Bag from compare lands in Shopping Bag with that SKU.
+- [ ] Women dresses never cluster with Kids frocks.
 
 ---
 
-### F2: Price Drop Push Notification
-**Solves:** PP1
+### F1: Context Tag on Save
+**Solves:** PP3
 
 #### User Story
-> As a user, I want to be notified automatically when the price drops  
-> on anything in my wishlist, so I don't have to check manually.
+> As a user, when I add an item to my wishlist, I want to tag my intent so that when I come back, I know why it's there.
 
-#### Trigger Logic
-- Condition: `current_price < price_at_save`
-- Minimum threshold: price drop ≥ ₹50 OR ≥ 5% (whichever is smaller)
-- Frequency cap: max 1 notification per item per 48 hours
-- Respects user's notification preference toggle (F6)
-
-#### Notification Copy
+#### Flow
 ```
-Title:  "Price Drop on your Wishlist 🎉"
-Body:   "[Item Name] just dropped to ₹[new_price].
-         (Was ₹[old_price]) — Sale may not last."
-Action: Opens product page directly, "Add to Cart" CTA highlighted
+User taps "Add to Wishlist" / heart
+        ↓
+Sheet: "Saving this for…?"
+  [ 🎉 Upcoming Occasion ]
+  [ 📦 Waiting for My Size ]
+  [ ✨ Not sure how it will look on me ]
+  [ 🤔 Just Bookmarking ]
+        ↓
+User taps a tag  →  Tag saved on wishlist card
+User Skip / dismiss  →  Item saves with no tag
+```
+
+#### UI Details
+
+- Sheet is non-blocking; Skip is first-class.
+- Occasion → optional date picker (feeds F4).
+- Chip on card. Long-press / tap chip → edit.
+- Bookmark does **not** show on the home “From your wishlist” rail (intentional saves only).
+- `styling_unsure` unlocks customer photos + reviews for **that** SKU (no TTS line).
+
+#### Data (prototype)
+
+```typescript
+tag: 'occasion' | 'size_wait' | 'styling_unsure' | 'bookmarking' | null
+occasionDate: string | null
 ```
 
 #### Acceptance Criteria
-- [ ] Notification fires only when drop meets ₹50 or 5% threshold
-- [ ] Does NOT fire if user has toggled off Price Drop Alerts in F6
-- [ ] Deep-links directly to the product page
-- [ ] Max 1 alert per item per 48 hours enforced
+
+- [ ] Four tags visible; **no** “Waiting for Price Drop”.
+- [ ] Skip → `tag: null`, no re-prompt.
+- [ ] Occasion date picker only after Occasion.
+- [ ] Chip editable; `styling_unsure` shows photos of this piece.
 
 ---
 
 ### F3: Size / Restock Push Notification
 **Solves:** PP2
 
-#### User Story
-> As a user, if I saved an item while my size was out of stock,  
-> I want to know the moment it's back — before it sells out again.
-
-#### Trigger Logic
-- At save time: if `selectedSize` is OOS → register a **size watch**
-- Trigger fires when: `size_watch.size` flips to `in_stock: true`
-- One notification per restock event per user per item
-- Respects F6 toggle
-
-#### Notification Copy
-```
-Title:  "Your size is back! 📦"
-Body:   "[Item Name] in size [M] is back in stock.
-         Only [X] left — don't miss it."
-Action: Opens product page with user's size pre-selected
-```
-
-#### Acceptance Criteria
-- [ ] Size watch registered at time of save if selected size is OOS
-- [ ] Notification fires only for the exact saved size, not other sizes
-- [ ] Deep-links to product page with size pre-selected
-- [ ] Does not re-fire if user already purchased the item
+- Register a size watch **only if** the selected size is OOS **at save**.
+- Fire when **that exact size** is in stock. Other sizes silent.
+- Deep-link wishlist/PDP with that size. Do not re-fire after purchase.
+- Respects F6 Size Back-in-Stock.
 
 ---
 
 ### F4: Occasion Reminder Notification
-**Solves:** PP3 (buying trigger — occasion deadline)
+**Solves:** PP3 + deadline
 
-#### User Story
-> As a user, if I tagged wishlist items for an upcoming occasion  
-> and set a date, I want a timely reminder so I order before it's too late.
-
-#### Trigger Logic
-- Fires when: `days_until_occasion_date <= 7`
-- If multiple items tagged for the same occasion → batch into **1 notification**
-- Does not fire if all occasion-tagged items are already purchased
-- Respects F6 toggle
-
-#### Notification Copy
-```
-Title:  "[Occasion] is in [X] days! 🎉"
-Body:   "You have [N] items saved for it.
-         Order now to get them on time."
-Action: Opens wishlist filtered to show only occasion-tagged items
-```
-
-#### Acceptance Criteria
-- [ ] Only fires if user set an occasion date (not just occasion tag)
-- [ ] Multiple same-occasion items batched into 1 notification
-- [ ] Deep-links to filtered wishlist showing occasion items only
-- [ ] Does not fire if occasion date has already passed
+- Requires `occasion` **and** `occasionDate`.
+- Fires when `days_until_occasionDate <= 7` and the date has not passed.
+- Same date → **one** batched notification.
+- Open → wishlist filtered to those occasion items.
+- Date passed unused → clear occasion tag; item stays; no late ping.
+- Respects F6 Occasion Reminders.
 
 ---
 
 ### F5: Dead Item In-App Nudge
-**Solves:** PP4 — Silent OOS items cluttering wishlist forever
+**Solves:** PP4
 
-#### User Story
-> As a user, I want to know when a wishlisted item is never coming back,  
-> so I can either find an alternative or clean up my wishlist.
-
-#### Trigger Logic
-- Condition A: Item has been `out_of_stock` for **60+ consecutive days**
-- Condition B: Item is marked `discontinued` in Myntra's backend
-- Delivery: **In-app card nudge only** — NOT a push notification
-  *(Reason: 18–24 segment explicitly irritated by notifications — this keeps wishlist clean without adding to notification noise)*
-
-#### UI — Nudge Card (appears at top of wishlist)
-```
-┌──────────────────────────────────────────────┐
-│ ⚠️  This item won't be restocked              │
-│ [thumbnail]  [Item Name]  [Brand]             │
-│                                               │
-│  [ See Similar Items ]    [ Remove  ✕ ]       │
-└──────────────────────────────────────────────┘
-```
-
-#### Acceptance Criteria
-- [ ] Nudge card appears at top of wishlist (not buried)
-- [ ] "See Similar" navigates to category search with matching filters
-- [ ] "Remove" deletes item from wishlist immediately
-- [ ] Nudge is shown only once per item (no repeat if dismissed)
-- [ ] NOT sent as push notification
+- Discontinued **or** OOS ≥ 60 consecutive days.
+- **In-app only. Never a push.**
+- Card: won’t be restocked · See Similar · Remove. Once per item.
+- Dead SKUs **do not** enter F-CMP clusters.
 
 ---
 
-### F6: Notification Preference Settings *(Required Guardrail)*
-**Solves:** PP5 — Notification overload causing app avoidance (18–24 segment)
+### F6: Notification Preference Settings
+**Solves:** PP5
 
-#### User Story
-> As a user, I want to choose which wishlist notifications I receive  
-> so I'm not spammed and don't avoid the app.
-
-#### Location
-`Profile → Settings → Notifications → Wishlist Alerts`  
-*Also accessible via ⚙️ icon on top-right of Wishlist screen*
-
-#### UI
 ```
 Wishlist Notifications
 ────────────────────────────────────────
-💸 Price Drop Alerts          [ ON  ● ]
+💸 Price Drop Alerts          [ toggle — unused for send in this slice ]
 📦 Size Back-in-Stock         [ ON  ● ]
 🎉 Occasion Reminders         [ ON  ● ]
 ```
-> Note: Dead Item Nudge (F5) is in-app only — no toggle needed.
 
-#### Behaviour
-- All toggles default to **ON** for all users
-- Toggling OFF immediately stops that notification type
-- Preferences stored to **user profile** (not device-local)
-
-#### Acceptance Criteria
-- [ ] All toggles default to ON
-- [ ] Toggling OFF stops that alert type immediately
-- [ ] Preferences sync to user profile (persist across devices)
-- [ ] ⚙️ shortcut visible on Wishlist screen header
+- ⚙️ on wishlist header. Defaults ON (Kabir seed may start with types off).
+- OFF stops that type immediately.
+- F5 has no toggle.
+- Price Drop toggle may remain in chrome so 18–24 can keep it off; **this MVP does not send F2**.
 
 ---
 
-## 🗂️ Wishlist Screen — Updated UI Structure
+## 🗂️ Wishlist Screen — UI Structure
 
 ```
-Wishlist Screen
-├── Header
-│   ├── Title: "Wishlist" + item count
-│   └── ⚙️  Notification Settings  (top right)
-│
-├── Dead Item Nudge Cards  [if any — shown at top]
-│   └── ⚠️  [Item] won't restock → [See Similar] [Remove]
-│
-├── Wishlist Items  (grid or list)
-│   └── Item Card
-│       ├── Product image
-│       ├── Brand + Product name
-│       ├── Price (current + strikethrough original)
-│       ├── Context Tag chip  [🎉 Occasion / 💸 Price Drop / 📦 Size / 🤔 Bookmarking]
-│       ├── Stock status  [In Stock / OOS]
-│       └── [ Add to Cart ] CTA
+Wishlist
+├── Header: title + count + ⚙️
+├── Hint: same types sit together so you can compare
+├── Tabs: All | Compare | Occasion | My size | How it looks on me | Saved | No longer available
+├── All:
+│   ├── Compare banners (one per cluster)
+│   ├── Groups by save-reason + dead nudge
+│   └── Cards: image, brand, name, price, tag chip, stock, MOVE TO BAG
+└── Compare tab → cluster list → Compare page (cards)
 ```
 
 ---
 
-## 📱 Screens to Build
+## ⚙️ API (prototype)
 
-| Screen / Component | Type | Priority |
+```
+GET    /wishlist
+GET    /wishlist/compare
+GET    /wishlist/compare/:key?inStock=1
+POST   /wishlist
+PATCH  /wishlist/:id
+DELETE /wishlist/:id
+GET/PATCH preferences
+POST   restock / occasion / dead workers
+```
+
+Compare routes are registered **before** `/wishlist/:id/...` so `compare` is not parsed as an item id. Keys are `Category:article` (URL-encoded).
+
+---
+
+## ⚠️ Edge Cases (summary)
+
+Full catalog: [EdgeCases_Wishlist_Reengagement_MVP.md](./EdgeCases_Wishlist_Reengagement_MVP.md) (`EC-COMP-*` for compare; do **not** reuse retired discovery `EC-CMP-*`).
+
+| Scenario | Expected |
+|---|---|
+| 1 item of a type | No cluster |
+| 6 kurtas | Show newest 5 |
+| Discontinued in the list | F5 only; not in compare |
+| Kids frock + Women dress | Separate keys; no mix |
+| Skip tag | `null`, no re-prompt |
+| Restock other size | No F3 |
+| Same occasion date, two SKUs | One F4 |
+| OS notifications off | F5 still shows |
+| Demo checkout | No live conversion % |
+
+---
+
+## ✅ Definition of Done
+
+| Feature | Done when |
+|---|---|
+| F-CMP | Clusters at 2+, cap 5, cards with required fields, in-stock filter, Not this, bag, no TTS / fake score, no category mix, dead excluded |
+| F1 | Four tags (no price-drop), skip, chip, edit, styling photos of this SKU |
+| F3 | Exact saved size; F6 respected |
+| F4 | Date required, ≤7 days, batched, filtered list |
+| F5 | In-app top/tab, Similar + Remove, never push, not in compare |
+| F6 | Toggles, ⚙️, no F5 push toggle |
+| Honesty | No invented conversion % |
+
+---
+
+## 📊 Success Metrics
+
+| Metric | Target | Proto |
 |---|---|---|
-| Wishlist Home (updated layout) | Modified existing screen | P0 |
-| Context Tag Bottom Sheet | New component | P0 |
-| Occasion Date Picker | New component (within tag flow) | P0 |
-| Notification Preference Settings Screen | New screen | P0 |
-| Dead Item Nudge Card | New component | P0 |
+| **CMP-OPEN** | Shopper with a cluster opens compare | Count in proto |
+| **CMP-BAG** | Bag from a compare card / users who opened compare | Count; not a painted % |
+| **CMP-FILTER** | In-stock filter used when OOS rows exist | Count |
+| Restock CTR | ≥35% when live | Count in proto |
+| Dead items actioned | ≥40% of flagged | Count |
+| Context tag adoption | ≥50% of new saves tagged | Count |
+| Opt-out (any wishlist alert) | ≤20% | Count |
+| Wishlist → Cart | ≥15% vs ~5% baseline | **Unavailable** until `shop.internal_orders` |
+
+A filled 15% on this prototype is a **fail**.
 
 ---
 
-## 🔔 Notification Architecture
+## 📱 Screens
 
-```
-Push Notifications  (Firebase / APNs)
-  ├── F2: Price Drop Alert
-  ├── F3: Size Restock Alert
-  └── F4: Occasion Reminder
-
-In-App Only  (no push)
-  └── F5: Dead Item Nudge Card
-```
-
----
-
-## ⚙️ API Endpoints Needed
-
-```
-// Wishlist
-GET    /wishlist/:userId                    → Fetch all wishlist items
-POST   /wishlist/:userId/items              → Add item (include tag + occasionDate)
-PATCH  /wishlist/:userId/items/:itemId      → Update tag / occasion date
-DELETE /wishlist/:userId/items/:itemId      → Remove item
-
-// Notification Preferences
-GET    /wishlist/:userId/preferences        → Fetch notification prefs
-PATCH  /wishlist/:userId/preferences        → Update toggles
-
-// Internal / Cron
-POST   /notifications/wishlist/price-check  → Check price drops (runs every 6h)
-POST   /notifications/wishlist/restock-check→ Check size restocks (runs every 6h)
-POST   /notifications/wishlist/occasion-check → Check upcoming occasions (runs daily 9AM)
-POST   /notifications/wishlist/dead-items   → Flag OOS 60+ days (runs daily)
-```
-
----
-
-## ⏱️ Background Jobs (Cron Schedule)
-
-```
-Every 6 hours:
-  → Price drop check → fire F2 if threshold met
-  → Restock check    → fire F3 if saved size back in stock
-
-Daily at 9 AM:
-  → Occasion check   → fire F4 if occasion ≤ 7 days away
-  → Dead item check  → flag items OOS 60+ days → show F5 nudge
-```
-
----
-
-## ⚠️ Edge Cases to Handle
-
-| Scenario | Expected Behaviour |
+| Screen | Type |
 |---|---|
-| User skips context tag bottom sheet | Item saves with `tag: null`. No re-prompt. |
-| Price drops then rises again | Notification fires on drop only. No "price rose" alert. |
-| User's phone notifications OFF at OS level | F5 in-app nudge still works as fallback |
-| Item added while in stock — goes OOS later | No size watch registered. F5 dead item logic applies after 60 days. |
-| Occasion date passes without purchase | Occasion tag auto-cleared. Item stays in wishlist. No notification. |
-| Multiple items for same occasion | Batch into 1 notification — not separate pings per item |
-| User has F2 toggle OFF but price drops | No notification sent. Preference respected. |
+| Wishlist (tabs + banners) | Modified |
+| Compare page | **New** |
+| Tag sheet | Existing |
+| Prefs (⚙️) | Existing |
+| Dead nudge | Existing |
+| PDP / Bag | Existing |
 
 ---
 
-## ✅ Definition of Done — MVP1
-
-| Feature | Done When |
-|---|---|
-| F1: Context Tag | Tag saves, shows on card, editable, graceful skip works |
-| F2: Price Drop | Notification fires on threshold, respects toggle, deep-links correctly |
-| F3: Restock | Fires for exact saved size only, pre-selects size on landing |
-| F4: Occasion Reminder | Batches items, fires 7 days before, filters wishlist on tap |
-| F5: Dead Item Nudge | In-app card at top of wishlist, See Similar + Remove both work |
-| F6: Notification Settings | 3 toggles work, defaults ON, syncs to profile, accessible from wishlist |
-
----
-
-## 📊 Success Metrics — MVP1
-
-| Metric | Target |
-|---|---|
-| Wishlist → Cart conversion rate | Increase from ~5% baseline to ≥ 15% |
-| Price Drop notification CTR | ≥ 25% |
-| Restock notification CTR | ≥ 35% |
-| Dead items removed/actioned | ≥ 40% of flagged items |
-| Context Tag adoption | ≥ 50% of new wishlist saves tagged |
-| Notification opt-out rate | ≤ 20% (health check for notification strategy) |
-
----
-
-*MVP1 PRD v1.0 | Research: 6 interviews (18–24 + 25–35) + 2 surveys | Myntra Wishlist, 2024*
+*Comparison MVP v2.0 | Aligns docs with the shopper prototype. Research still 6 interviews + 2 surveys.*

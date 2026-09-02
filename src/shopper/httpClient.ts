@@ -98,6 +98,19 @@ export function createHttpShopperApi(baseUrl: string, getPersonaId: () => string
     getLookPairs(itemId: string) {
       return request(`/wishlist/${encodeURIComponent(itemId)}/looks`);
     },
+    getStylingLooks(itemId: string) {
+      return request(`/wishlist/${encodeURIComponent(itemId)}/styling`);
+    },
+    getCompareClusters() {
+      return request("/wishlist/compare");
+    },
+    getCompare(key: string, inStockOnly = false) {
+      const q = inStockOnly ? "?inStock=1" : "";
+      return request(`/wishlist/compare/${encodeURIComponent(key)}${q}`);
+    },
+    getOrders() {
+      return request("/orders");
+    },
     getMeasurement() {
       return request("/measurement");
     },

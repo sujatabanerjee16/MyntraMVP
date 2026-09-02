@@ -14,12 +14,12 @@ describe("price threshold", () => {
     expect(meetsPriceThreshold(5000, 4940)).toBe(true);
   });
 
-  it("respects the price-drop toggle", () => {
+  it("does not send a price-drop alert", () => {
     const dropped = { ...libas, currentPrice: 2639 };
-    expect(canSendPriceDrop(dropped, on, "2026-08-30T10:00:00.000Z").ok).toBe(true);
+    expect(canSendPriceDrop(dropped, on, "2026-08-30T10:00:00.000Z")).toEqual({ ok: false, reason: "disabled" });
     expect(
       canSendPriceDrop(dropped, { ...on, priceDropAlerts: false }, "2026-08-30T10:00:00.000Z"),
-    ).toEqual({ ok: false, reason: "pref_off" });
+    ).toEqual({ ok: false, reason: "disabled" });
   });
 });
 

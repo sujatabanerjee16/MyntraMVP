@@ -327,7 +327,7 @@ describe("stylist combined ranking", () => {
     });
     expect(recs.every((row) => row.parts.price === 0.5)).toBe(true);
     expect(recs.every((row) => row.flags.genuineDiscount === false)).toBe(true);
-    expect(recs.some((row) => /not enough history, price, or review/i.test(row.reason))).toBe(true);
+    expect(recs.some((row) => /fresh pick while we learn your taste/i.test(row.reason))).toBe(true);
   });
 
   it("lets weights retune the ranking", () => {

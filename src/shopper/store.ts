@@ -9,6 +9,7 @@ import {
   JEANS_ID,
   OCCASION_2_ID,
   OCCASION_ID,
+  type ContextTag,
   type InboxRow,
   type NotificationPrefs,
   type WishlistItem,
@@ -28,6 +29,20 @@ export type CatalogProduct = {
   sizeOos: boolean;
   image_url: string;
   category: SiteCat;
+  description?: string;
+};
+
+export type ShopperOrderItem = {
+  brand: string;
+  title: string;
+  price: number;
+  image_url: string;
+};
+
+export type ShopperOrder = {
+  id: string;
+  placedAt: string;
+  items: ShopperOrderItem[];
 };
 
 export type HeroSlide = {
@@ -41,61 +56,120 @@ const IMG = {
   menShirt: "/shopper/men-shirt.jpg",
   menPolo: "/shopper/men-polo.jpg",
   menJeans: "/shopper/men-jeans.jpg",
+  menChinos: "/shopper/men-chinos.jpg",
+  menJacket: "/shopper/men-jacket.jpg",
   womenDress: "/shopper/women-dress.jpg",
   womenKurta: "/shopper/women-kurta.jpg",
   womenFloral: "/shopper/women-floral.jpg",
+  womenSaree: "/shopper/women-saree.jpg",
+  womenTop: "/shopper/women-top.jpg",
   kidsTee: "/shopper/kids-tee.jpg",
   kidsEthnic: "/shopper/kids-ethnic.jpg",
   kidsFrock: "/shopper/kids-frock.jpg",
+  kidsShorts: "/shopper/kids-shorts.jpg",
+  kidsHoodie: "/shopper/kids-hoodie.jpg",
   homeSheet: "/shopper/home-sheet.jpg",
   homeCushion: "/shopper/home-cushion.jpg",
   homeLamp: "/shopper/home-lamp.jpg",
+  homeCurtain: "/shopper/home-curtain.jpg",
+  homeDinner: "/shopper/home-dinner.jpg",
   beautyLip: "/shopper/beauty-lip.jpg",
   beautySerum: "/shopper/beauty-serum.jpg",
   beautyKit: "/shopper/beauty-kit.jpg",
+  beautyPalette: "/shopper/beauty-palette.jpg",
+  beautyCream: "/shopper/beauty-cream.jpg",
   genzCargo: "/shopper/genz-cargo.jpg",
   genzTop: "/shopper/genz-top.jpg",
   genzSneaker: "/shopper/genz-sneaker.jpg",
+  genzHoodie: "/shopper/genz-hoodie.jpg",
+  genzSkirt: "/shopper/genz-skirt.jpg",
   studioLook: "/shopper/studio-look.jpg",
-  studioDress: "/shopper/studio-dress.jpg",
+  studioDress: "/shopper/studio-dress.png",
   studioJewel: "/shopper/studio-jewel.jpg",
+  studioBlazer: "/shopper/studio-blazer.jpg",
+  studioBag: "/shopper/studio-bag.jpg",
+  menBlackSuit: "/shopper/pics/men-black-suit.jpg",
+  menBlueSherwani: "/shopper/pics/men-blue-sherwani.jpg",
+  menTanJacket: "/shopper/pics/men-tan-jacket.jpg",
+  menNavySuit: "/shopper/pics/men-navy-suit.jpg",
+  menWhiteShirt: "/shopper/pics/men-white-shirt.jpg",
+  menBlackTee: "/shopper/pics/men-black-tee.jpg",
+  menLightJeans: "/shopper/pics/men-light-jeans.jpg",
+  menWhiteTee: "/shopper/pics/men-white-tee.jpg",
+  menChicagoTee: "/shopper/pics/men-chicago-tee.jpg",
+  menMintKurta: "/shopper/pics/men-mint-kurta.jpg",
+  menWhiteKurta: "/shopper/pics/men-white-kurta.jpg",
+  menBlueKurta: "/shopper/pics/men-blue-kurta.jpg",
+  menDenimJacket: "/shopper/pics/men-denim-jacket.jpg",
+  womenMustardSaree: "/shopper/pics/women-mustard-saree.jpg",
+  womenPolkaShirt: "/shopper/pics/women-polka-shirt.jpg",
+  womenNavySaree: "/shopper/pics/women-navy-saree.jpg",
+  womenEmeraldSaree: "/shopper/pics/women-emerald-saree.jpg",
+  womenOliveMaxi: "/shopper/pics/women-olive-maxi.jpg",
+  womenPinkShirt: "/shopper/pics/women-pink-shirt.jpg",
+  womenBlueKurta: "/shopper/pics/women-blue-kurta.jpg",
+  womenPinkAnarkali: "/shopper/pics/women-pink-anarkali.jpg",
+  womenBlackKurta: "/shopper/pics/women-black-kurta.jpg",
+  kidsTropicalSet: "/shopper/pics/kids-tropical-set.jpg",
+  kidsBabySocks: "/shopper/pics/kids-baby-socks.jpg",
+  kidsPlaidShirt: "/shopper/pics/kids-plaid-shirt.jpg",
+  kidsInfantSet: "/shopper/pics/kids-infant-set.jpg",
+  kidsFloralBooties: "/shopper/pics/kids-floral-booties.jpg",
+  kidsWaistcoat: "/shopper/pics/kids-waistcoat.jpg",
+  shoesChunky: "/shopper/pics/shoes-chunky.jpg",
+  shoesGlitch: "/shopper/pics/shoes-glitch.jpg",
+  shoesRedCanvas: "/shopper/pics/shoes-red-canvas.jpg",
+  shoesLining: "/shopper/pics/shoes-lining-white.jpg",
 };
 
 export const SITE_HEROES: Record<SiteCat, HeroSlide[]> = {
   WOMEN: [
     { brand: "W", title: "Summer Dresses", offer: "Up To 50% Off", image_url: IMG.womenFloral },
     { brand: "LIBAS", title: "Festive Dresses", offer: "Min 40% Off", image_url: IMG.womenDress },
-    { brand: "BIBA", title: "Ethnic Edit", offer: "From ₹999", image_url: IMG.womenKurta },
+    { brand: "BIBA", title: "Ethnic Edit", offer: "From ₹999", image_url: "/shopper/biba-product.png" },
+    { brand: "KALINI", title: "Silk Sarees", offer: "New In", image_url: IMG.womenSaree },
+    { brand: "MITERA", title: "Festive Sarees", offer: "From ₹3499", image_url: IMG.womenMustardSaree },
+    { brand: "VERO MODA", title: "Evening Maxi", offer: "Just In", image_url: IMG.womenOliveMaxi },
   ],
   MEN: [
     { brand: "ROADSTER", title: "Casual Shirts", offer: "Up To 50% Off", image_url: IMG.menShirt },
     { brand: "U.S. POLO ASSN.", title: "Polo Edit", offer: "Min 30% Off", image_url: IMG.menPolo },
     { brand: "LEVI'S", title: "Denim Edit", offer: "New Season", image_url: IMG.menJeans },
+    { brand: "WROGN", title: "Smart Casuals", offer: "From ₹1299", image_url: IMG.menChinos },
+    { brand: "RAYMOND", title: "Suit Edit", offer: "From ₹7499", image_url: IMG.menNavySuit },
+    { brand: "MANYAVAR", title: "Wedding Sherwani", offer: "Festive In", image_url: IMG.menBlueSherwani },
   ],
   KIDS: [
-    { brand: "H&M KIDS", title: "Play All Day", offer: "Starting ₹499", image_url: IMG.kidsTee },
-    { brand: "MAX", title: "Little Classics", offer: "Up To 40% Off", image_url: IMG.kidsEthnic },
-    { brand: "BABYHUG", title: "Party Ready", offer: "Min 20% Off", image_url: IMG.kidsFrock },
+    { brand: "MOTHERCARE", title: "Baby Tees", offer: "Starting ₹499", image_url: IMG.kidsHoodie },
+    { brand: "GINI & JONY", title: "Shorts Sets", offer: "Min 20% Off", image_url: IMG.kidsTropicalSet },
+    { brand: "HOPSCOTCH", title: "Little Festive", offer: "From ₹499", image_url: IMG.kidsInfantSet },
+    { brand: "MAX", title: "Party Sets", offer: "Up To 40% Off", image_url: IMG.kidsWaistcoat },
+    { brand: "H&M KIDS", title: "Check Shirts", offer: "New In", image_url: IMG.kidsPlaidShirt },
+    { brand: "BABYHUG", title: "Soft Booties", offer: "From ₹399", image_url: IMG.kidsFloralBooties },
   ],
   HOME: [
-    { brand: "SPACES", title: "Bed & Bath", offer: "From ₹299", image_url: IMG.homeSheet },
-    { brand: "HOME CENTRE", title: "Soft Furnishings", offer: "Up To 60% Off", image_url: IMG.homeCushion },
-    { brand: "RANDOM", title: "Living Room", offer: "New In", image_url: IMG.homeLamp },
+    { brand: "GOOD HOMES", title: "Living Room", offer: "New In", image_url: IMG.homeDinner },
+    { brand: "D'DECOR", title: "Bed Edit", offer: "From ₹799", image_url: IMG.homeCurtain },
+    { brand: "RANDOM", title: "Lighting", offer: "From ₹299", image_url: IMG.homeLamp },
   ],
   BEAUTY: [
     { brand: "MAYBELLINE", title: "Glow Edit", offer: "Up To 30% Off", image_url: IMG.beautyLip },
     { brand: "LAKME", title: "Skin First", offer: "From ₹199", image_url: IMG.beautySerum },
     { brand: "NYKAA", title: "Makeup Minis", offer: "Bestsellers", image_url: IMG.beautyKit },
+    { brand: "SUGAR", title: "Eye Palettes", offer: "New Shades", image_url: IMG.beautyPalette },
   ],
   GENZ: [
     { brand: "SASSAFRAS", title: "Campus Fits", offer: "Flat 40% Off", image_url: IMG.genzCargo },
     { brand: "URBANIC", title: "Night Out", offer: "New Drops", image_url: IMG.genzTop },
     { brand: "PUMA", title: "Street Layer", offer: "Min 25% Off", image_url: IMG.genzSneaker },
+    { brand: "H&M", title: "Hoodie Drop", offer: "Just In", image_url: IMG.genzHoodie },
+    { brand: "PUMA", title: "Chunky Sneakers", offer: "Street Drop", image_url: IMG.shoesChunky },
   ],
   STUDIO: [
     { brand: "MYNTRA STUDIO", title: "Style Cast", offer: "Watch & Shop", image_url: IMG.studioLook },
     { brand: "STUDIO", title: "Creator Picks", offer: "Just In", image_url: IMG.studioDress },
     { brand: "STUDIO", title: "Trend Talk", offer: "This Week", image_url: IMG.studioJewel },
+    { brand: "STUDIO", title: "Blazer Edit", offer: "On Set", image_url: IMG.studioBlazer },
   ],
 };
 
@@ -103,24 +177,59 @@ export const UNSAVED_CATALOG: CatalogProduct[] = [
   { productId: "prod-roadster", sku: "sku-roadster-m", brand: "Roadster", title: "Cotton Casual Shirt", price: 1299, size: "M", sizeOos: false, image_url: IMG.menShirt, category: "MEN" },
   { productId: "prod-polo", sku: "sku-polo-m", brand: "U.S. Polo Assn.", title: "Pique Polo T-Shirt", price: 1799, size: "M", sizeOos: false, image_url: IMG.menPolo, category: "MEN" },
   { productId: "prod-levis", sku: "sku-levis-m", brand: "Levi's", title: "511 Slim Jeans", price: 2999, size: "32", sizeOos: false, image_url: IMG.menJeans, category: "MEN" },
+  { productId: "prod-chinos", sku: "sku-chinos-32", brand: "WROGN", title: "Slim Fit Chinos", price: 1699, size: "32", sizeOos: false, image_url: IMG.menChinos, category: "MEN", description: "Dark slim trousers, five-pocket, clean wash. Easy with a linen shirt or a white tee." },
+  { productId: "prod-jacket", sku: "sku-jacket-m", brand: "HRX", title: "Olive Bomber Jacket", price: 2499, size: "M", sizeOos: false, image_url: IMG.menJacket, category: "MEN" },
   { productId: "prod-global-desi", sku: "sku-global-s", brand: "Global Desi", title: "Printed Fit & Flare Dress", price: 2199, size: "S", sizeOos: true, image_url: IMG.womenDress, category: "WOMEN" },
-  { productId: "prod-anouk-live", sku: "sku-anouk-m", brand: "Anouk", title: "Embroidered Kurta Set", price: 2499, size: "M", sizeOos: false, image_url: IMG.womenKurta, category: "WOMEN" },
   { productId: "prod-w", sku: "sku-w-m", brand: "W", title: "Floral Summer Dress", price: 1899, size: "M", sizeOos: false, image_url: IMG.womenFloral, category: "WOMEN" },
-  { productId: "prod-kids-tee", sku: "sku-kids-tee", brand: "H&M Kids", title: "Graphic Print T-Shirt", price: 599, size: "7-8Y", sizeOos: false, image_url: IMG.kidsTee, category: "KIDS" },
-  { productId: "prod-kids-set", sku: "sku-kids-set", brand: "Max", title: "Boys Ethnic Set", price: 899, size: "5-6Y", sizeOos: false, image_url: IMG.kidsEthnic, category: "KIDS" },
-  { productId: "prod-kids-frock", sku: "sku-kids-frock", brand: "Babyhug", title: "Girls Party Frock", price: 799, size: "3-4Y", sizeOos: false, image_url: IMG.kidsFrock, category: "KIDS" },
-  { productId: "prod-home-sheet", sku: "sku-home-sheet", brand: "Spaces", title: "Cotton Bed Sheet Set", price: 1299, size: "Q", sizeOos: false, image_url: IMG.homeSheet, category: "HOME" },
-  { productId: "prod-home-cushion", sku: "sku-home-cushion", brand: "Home Centre", title: "Printed Cushion Cover", price: 399, size: "16", sizeOos: false, image_url: IMG.homeCushion, category: "HOME" },
+  { productId: "prod-saree", sku: "sku-saree-os", brand: "Kalini", title: "Woven Silk Saree", price: 3499, size: "OS", sizeOos: false, image_url: IMG.womenSaree, category: "WOMEN" },
+  { productId: "prod-kids-shorts", sku: "sku-kids-shorts", brand: "Gini & Jony", title: "Printed Shorts Set", price: 699, size: "7-8Y", sizeOos: false, image_url: IMG.kidsTropicalSet, category: "KIDS", description: "Short-sleeve shirt and matching shorts in an earthy botanical print. Soft cotton for vacation days." },
+  { productId: "prod-kids-hoodie", sku: "sku-kids-hoodie", brand: "Mothercare", title: "Cotton Baby Tee Set", price: 999, size: "6-12M", sizeOos: false, image_url: IMG.kidsHoodie, category: "KIDS", description: "Plain cotton baby tee styled with a knit beanie, bear socks, and a wooden toy camera." },
   { productId: "prod-home-lamp", sku: "sku-home-lamp", brand: "Random", title: "Table Lamp", price: 1499, size: "1", sizeOos: false, image_url: IMG.homeLamp, category: "HOME" },
+  { productId: "prod-home-curtain", sku: "sku-home-curtain", brand: "D'Decor", title: "Tufted Silver Bedding Set", price: 1899, size: "Q", sizeOos: false, image_url: IMG.homeCurtain, category: "HOME", description: "Silver quilted comforter on a cream tufted bed, layered with grey-lavender pillows and a matching bench." },
+  { productId: "prod-home-dinner", sku: "sku-home-dinner", brand: "Good Homes", title: "Ochre Lounge Chair", price: 1599, size: "1", sizeOos: false, image_url: IMG.homeDinner, category: "HOME", description: "Mid-century lounge chair in ochre upholstery with tapered legs. Styled with a brass floor lamp and marble side table." },
   { productId: "prod-beauty-lip", sku: "sku-beauty-lip", brand: "Maybelline", title: "Superstay Lipstick", price: 499, size: "5g", sizeOos: false, image_url: IMG.beautyLip, category: "BEAUTY" },
   { productId: "prod-beauty-serum", sku: "sku-beauty-serum", brand: "Lakme", title: "Vitamin C Serum", price: 699, size: "30ml", sizeOos: false, image_url: IMG.beautySerum, category: "BEAUTY" },
   { productId: "prod-beauty-kit", sku: "sku-beauty-kit", brand: "Nykaa", title: "Everyday Makeup Kit", price: 999, size: "1", sizeOos: false, image_url: IMG.beautyKit, category: "BEAUTY" },
+  { productId: "prod-beauty-palette", sku: "sku-beauty-palette", brand: "Sugar", title: "Nude Eye Palette", price: 899, size: "12g", sizeOos: false, image_url: IMG.beautyPalette, category: "BEAUTY" },
+  { productId: "prod-beauty-cream", sku: "sku-beauty-cream", brand: "The Face Shop", title: "Rice Water Cream", price: 799, size: "50ml", sizeOos: false, image_url: IMG.beautyCream, category: "BEAUTY" },
   { productId: "prod-genz-cargo", sku: "sku-genz-cargo", brand: "Sassafras", title: "Baggy Cargo Pants", price: 1599, size: "M", sizeOos: false, image_url: IMG.genzCargo, category: "GENZ" },
   { productId: "prod-genz-top", sku: "sku-genz-top", brand: "Urbanic", title: "Mesh Party Top", price: 1299, size: "S", sizeOos: false, image_url: IMG.genzTop, category: "GENZ" },
   { productId: "prod-genz-sneaker", sku: "sku-genz-sneaker", brand: "Puma", title: "Court Sneakers", price: 2499, size: "7", sizeOos: false, image_url: IMG.genzSneaker, category: "GENZ" },
+  { productId: "prod-genz-hoodie", sku: "sku-genz-hoodie", brand: "H&M", title: "Oversized Graphic Hoodie", price: 1499, size: "M", sizeOos: false, image_url: IMG.genzHoodie, category: "GENZ" },
+  { productId: "prod-genz-skirt", sku: "sku-genz-skirt", brand: "Only", title: "Dark Wash Slim Jeans", price: 1199, size: "28", sizeOos: false, image_url: IMG.genzSkirt, category: "GENZ", description: "Dark indigo slim jeans with a clean five-pocket finish. Street staple for tees and oversized shirts." },
   { productId: "prod-studio-look", sku: "sku-studio-look", brand: "Myntra Studio", title: "Creator Look Book Shirt", price: 1699, size: "M", sizeOos: false, image_url: IMG.studioLook, category: "STUDIO" },
   { productId: "prod-studio-dress", sku: "sku-studio-dress", brand: "Myntra Studio", title: "On-Set Maxi Dress", price: 2299, size: "M", sizeOos: false, image_url: IMG.studioDress, category: "STUDIO" },
   { productId: "prod-studio-jewel", sku: "sku-studio-jewel", brand: "Myntra Studio", title: "Styled Drop Earrings", price: 599, size: "OS", sizeOos: false, image_url: IMG.studioJewel, category: "STUDIO" },
+  { productId: "prod-studio-blazer", sku: "sku-studio-blazer", brand: "Myntra Studio", title: "Oversized Camel Blazer", price: 2799, size: "M", sizeOos: false, image_url: IMG.studioBlazer, category: "STUDIO" },
+  { productId: "prod-studio-bag", sku: "sku-studio-bag", brand: "Myntra Studio", title: "Structured Studio Bag", price: 1899, size: "OS", sizeOos: false, image_url: IMG.studioBag, category: "STUDIO" },
+  { productId: "prod-pic-black-suit", sku: "sku-pic-black-suit", brand: "Louis Philippe", title: "Midnight Slim-Fit Black Suit", price: 7499, size: "M", sizeOos: false, image_url: IMG.menBlackSuit, category: "MEN", description: "All-black slim-fit two-piece with notch lapels, a white pocket square, and tapered trousers. Sharp for evenings and boardrooms." },
+  { productId: "prod-pic-sherwani", sku: "sku-pic-sherwani", brand: "Manyavar", title: "Royal Blue Zardosi Sherwani", price: 8999, size: "M", sizeOos: false, image_url: IMG.menBlueSherwani, category: "MEN", description: "Textured silk-blend sherwani with a mandarin collar, gold zardosi on the neck and cuffs, and ornate buttons for wedding nights." },
+  { productId: "prod-pic-tan-jacket", sku: "sku-pic-tan-jacket", brand: "The Indian Garage Co", title: "Tan Faux-Suede Shirt Jacket", price: 2499, size: "M", sizeOos: false, image_url: IMG.menTanJacket, category: "MEN", description: "Soft faux-suede overshirt in camel, with a clean collar and button front. Layers easily over a dark shirt and denim." },
+  { productId: "prod-pic-navy-suit", sku: "sku-pic-navy-suit", brand: "Raymond", title: "Navy Slim-Fit Formal Suit", price: 9999, size: "M", sizeOos: false, image_url: IMG.menNavySuit, category: "MEN", description: "Navy two-piece with notched lapels and a red pocket square. Pair with brown leather for weddings or client dinners." },
+  { productId: "prod-pic-white-shirt", sku: "sku-pic-white-shirt", brand: "Van Heusen", title: "White Slim-Fit Dress Shirt", price: 1499, size: "M", sizeOos: false, image_url: IMG.menWhiteShirt, category: "MEN", description: "Crisp cotton dress shirt with a pointed collar. Roll the sleeves and add suspenders for a sharper evening look." },
+  { productId: "prod-pic-black-tee", sku: "sku-pic-black-tee", brand: "H&M", title: "Contrast-Stitch Oversized Tee", price: 999, size: "M", sizeOos: false, image_url: IMG.menBlackTee, category: "MEN", description: "Drop-shoulder black jersey with white contrast stitching at the neck and sleeves. Everyday street staple." },
+  { productId: "prod-pic-light-jeans", sku: "sku-pic-light-jeans", brand: "Levi's", title: "Light Wash Straight Jeans", price: 2899, size: "32", sizeOos: false, image_url: IMG.menLightJeans, category: "MEN", description: "Clean light-wash straight denim. Five-pocket, no heavy fade — easy with a white tee and slides." },
+  { productId: "prod-pic-white-tee", sku: "sku-pic-white-tee", brand: "Roadster", title: "Classic White Crew Tee", price: 799, size: "M", sizeOos: false, image_url: IMG.menWhiteTee, category: "MEN", description: "Plain white cotton crew. Regular fit, everyday weight — the tee you wear under a jacket or on its own." },
+  { productId: "prod-pic-chicago-tee", sku: "sku-pic-chicago-tee", brand: "Jack & Jones", title: "Chicago Graphic Oversized Tee", price: 1299, size: "M", sizeOos: false, image_url: IMG.menChicagoTee, category: "MEN", description: "Oversized black tee with a Chicago city graphic. Layer over a white shirt for a campus street look." },
+  { productId: "prod-pic-mint-kurta", sku: "sku-pic-mint-kurta", brand: "House of Pataudi", title: "Mint Mirror-Work Kurta", price: 2799, size: "M", sizeOos: false, image_url: IMG.menMintKurta, category: "MEN", description: "Sage cotton-blend kurta with white schiffli and mirror work on the front. Mandarin collar, festive without being heavy." },
+  { productId: "prod-pic-white-kurta", sku: "sku-pic-white-kurta", brand: "Anouk", title: "White Cotton Kurta Set", price: 2199, size: "M", sizeOos: false, image_url: IMG.menWhiteKurta, category: "MEN", description: "Straight white kurta and pajama in light cotton. Clean mandarin collar — Eid, puja, or a summer wedding." },
+  { productId: "prod-pic-blue-kurta", sku: "sku-pic-blue-kurta", brand: "Manyavar", title: "Royal Blue Silk-Blend Kurta Set", price: 2999, size: "M", sizeOos: false, image_url: IMG.menBlueKurta, category: "MEN", description: "Knee-length royal blue kurta with tonal embroidery on the placket, matching pajamas, and a slight silk sheen." },
+  { productId: "prod-pic-denim-jacket", sku: "sku-pic-denim-jacket", brand: "Roadster", title: "Light Wash Denim Trucker Jacket", price: 2499, size: "M", sizeOos: false, image_url: IMG.menDenimJacket, category: "MEN", description: "Classic trucker with chest flaps in a light wash. Wear it denim-on-denim or over a shirt and tie." },
+  { productId: "prod-pic-red-canvas", sku: "sku-pic-red-canvas", brand: "Roadster", title: "Crimson Low-Top Canvas Sneakers", price: 1299, size: "8", sizeOos: false, image_url: IMG.shoesRedCanvas, category: "MEN", description: "Red canvas low-tops with a white rubber cap and midsole. Everyday colour for jeans and chinos." },
+  { productId: "prod-pic-lining", sku: "sku-pic-lining", brand: "Li-Ning", title: "White Bronze Lifestyle Sneakers", price: 3499, size: "8", sizeOos: false, image_url: IMG.shoesLining, category: "MEN", description: "White pebbled upper with bronze side branding and a dark collar. Cushioned lifestyle trainer for city days." },
+  { productId: "prod-pic-mustard-saree", sku: "sku-pic-mustard-saree", brand: "Mitera", title: "Mustard Paithani Silk Saree", price: 3499, size: "OS", sizeOos: false, image_url: IMG.womenMustardSaree, category: "WOMEN", description: "Mustard silk-blend saree with a wide red-gold zari border and scattered buttas. Festive drape with an unstitched blouse." },
+  { productId: "prod-pic-polka-shirt", sku: "sku-pic-polka-shirt", brand: "DressBerry", title: "Black Micro-Polka Shirt", price: 1299, size: "M", sizeOos: false, image_url: IMG.womenPolkaShirt, category: "WOMEN", description: "Black regular-fit shirt in a dense white micro-dot. Pointed collar, long sleeves — office to dinner." },
+  { productId: "prod-pic-navy-saree", sku: "sku-pic-navy-saree", brand: "Kalini", title: "Navy Silver Zari Saree", price: 4499, size: "OS", sizeOos: false, image_url: IMG.womenNavySaree, category: "WOMEN", description: "Navy woven saree with silver-gold florals and a dense metallic border, finished with a pink-yellow stripe." },
+  { productId: "prod-pic-emerald-saree", sku: "sku-pic-emerald-saree", brand: "Soch", title: "Emerald Bandhani Silk Saree", price: 3999, size: "OS", sizeOos: false, image_url: IMG.womenEmeraldSaree, category: "WOMEN", description: "Emerald silk with gold foil buttas and a gold zari border. Orange-red bandhani pallu for wedding evenings." },
+  { productId: "prod-pic-olive-maxi", sku: "sku-pic-olive-maxi", brand: "Vero Moda", title: "Olive Ruched Satin Maxi", price: 4999, size: "M", sizeOos: false, image_url: IMG.womenOliveMaxi, category: "WOMEN", description: "Olive satin maxi with a ruched sweetheart neck and marbled straps. Shawl included for garden weddings." },
+  { productId: "prod-pic-pink-shirt", sku: "sku-pic-pink-shirt", brand: "StyleCast", title: "Blush Utility Shirt", price: 1199, size: "M", sizeOos: false, image_url: IMG.womenPinkShirt, category: "WOMEN", description: "Pastel pink cotton utility shirt with dual chest flaps. Tuck into a white midi for a clean daytime look." },
+  { productId: "prod-pic-baby-socks", sku: "sku-pic-baby-socks", brand: "Mothercare", title: "Baby Socks Pack of 5", price: 399, size: "0-6M", sizeOos: false, image_url: IMG.kidsBabySocks, category: "KIDS", description: "Five-pair cotton pack: florals, stripes, and a solid. Gentle cuffs that stay on newborn feet." },
+  { productId: "prod-pic-plaid-shirt", sku: "sku-pic-plaid-shirt", brand: "H&M Kids", title: "Boys Red Check Shirt", price: 899, size: "4-5Y", sizeOos: false, image_url: IMG.kidsPlaidShirt, category: "KIDS", description: "Red-white-blue check shirt with a chest pocket. Roll the sleeves for school photos or weekends." },
+  { productId: "prod-pic-infant-set", sku: "sku-pic-infant-set", brand: "Hopscotch", title: "Infant Floral Vest Set", price: 1099, size: "6-12M", sizeOos: false, image_url: IMG.kidsInfantSet, category: "KIDS", description: "Shimmer tee, floral waistcoat, and coral trousers with a knitted beanie. Festive set for family functions." },
+  { productId: "prod-pic-booties", sku: "sku-pic-booties", brand: "Babyhug", title: "Teal Floral Soft Booties", price: 499, size: "0-12M", sizeOos: false, image_url: IMG.kidsFloralBooties, category: "KIDS", description: "Aqua floral pre-walkers with a soft white sole and elastic laces. Gentle on pre-walker feet." },
+  { productId: "prod-pic-waistcoat", sku: "sku-pic-waistcoat", brand: "Max", title: "Boys Check Waistcoat Set", price: 2499, size: "3-4Y", sizeOos: false, image_url: IMG.kidsWaistcoat, category: "KIDS", description: "Brown windowpane waistcoat, white shirt, trousers, and tie. Little-gentleman set for weddings." },
+  { productId: "prod-pic-chunky", sku: "sku-pic-chunky", brand: "Puma", title: "Multi-Color Chunky Sneakers", price: 3499, size: "8", sizeOos: false, image_url: IMG.shoesChunky, category: "GENZ", description: "Chunky lifestyle sneaker in cream, teal, orange, and burgundy with red laces. Street drop energy." },
+  { productId: "prod-pic-glitch", sku: "sku-pic-glitch", brand: "HRX", title: "Black Glitch-Sole Sneakers", price: 2999, size: "8", sizeOos: false, image_url: IMG.shoesGlitch, category: "GENZ", description: "Black canvas low-top with a layered cream-and-black midsole. Architectural street shoe." },
 ];
 
 export const SEED_PREFS: NotificationPrefs = {
@@ -130,46 +239,66 @@ export const SEED_PREFS: NotificationPrefs = {
 };
 
 const SEARCH_WORDS: Record<SiteCat, string> = {
-  MEN: "men mens male shirt shirts tshirt tee jeans jean denim polo trousers linen",
-  WOMEN: "women womens dress dresses kurta kurtas ethnic festive midi wrap anarkali lehenga suit gown",
-  KIDS: "kids kid boys girls child baby frock tee tshirt",
-  HOME: "home living decor bed sheet cushion lamp",
-  BEAUTY: "beauty makeup lipstick lip serum skincare cosmetics",
-  GENZ: "genz gen-z street cargo sneakers sneaker party shoes",
-  STUDIO: "studio creator look earrings jewellery jewelry watch shop",
+  MEN: "men mens male",
+  WOMEN: "women womens female",
+  KIDS: "kids kid boys girls child baby infant",
+  HOME: "home living decor",
+  BEAUTY: "beauty makeup skincare cosmetics",
+  GENZ: "genz gen-z street",
+  STUDIO: "studio creator",
 };
 
 /** A typed word also matches these tokens on a product. */
 const SEARCH_ALIASES: Record<string, string[]> = {
   saree: ["saree", "sari"],
   sari: ["saree", "sari"],
+  sarees: ["saree", "sari"],
   lehenga: ["lehenga", "festive"],
-  suit: ["suit", "kurta", "ethnic"],
+  suit: ["suit", "kurta", "sherwani"],
+  suits: ["suit", "kurta", "sherwani"],
+  kurta: ["kurta", "kurtas", "anarkali"],
+  kurtas: ["kurta", "kurtas", "anarkali"],
+  dress: ["dress", "dresses", "maxi", "midi", "gown"],
+  dresses: ["dress", "dresses", "maxi", "midi", "gown"],
+  shirt: ["shirt", "shirts"],
+  shirts: ["shirt", "shirts"],
+  jeans: ["jeans", "jean", "denim"],
+  jean: ["jeans", "jean", "denim"],
+  denim: ["jeans", "jean", "denim"],
   tshirt: ["tshirt", "tee", "shirt"],
   "t-shirt": ["tshirt", "tee", "shirt"],
   jewellery: ["jewellery", "jewelry", "earrings"],
   jewelry: ["jewellery", "jewelry", "earrings"],
   shoes: ["shoes", "sneakers", "sneaker"],
   shoe: ["shoes", "sneakers", "sneaker"],
+  sneakers: ["shoes", "sneakers", "sneaker"],
 };
 
 const PRODUCT_SEARCH: Record<string, string> = {
-  "prod-biba": "saree sari ethnic",
-  "prod-anouk-live": "saree sari ethnic",
-  "prod-dead": "saree sari ethnic",
-  "prod-occasion": "saree sari festive ethnic",
+  "prod-biba": "kurta anarkali ethnic festive",
+  "prod-anouk-live": "kurta anarkali ethnic festive",
+  "prod-dead": "saree sari ethnic festive",
+  "prod-occasion": "maxi dress festive ethnic",
+  "prod-saree": "saree sari ethnic festive",
 };
 
 export const SAVED_CATALOG: CatalogProduct[] = [
+  { productId: "prod-anouk-live", sku: "sku-anouk-m", brand: "Anouk", title: "Embroidered Kurta Set", price: 2499, size: "M", sizeOos: false, image_url: "/shopper/biba-product.png", category: "WOMEN" },
   { productId: "prod-libas", sku: LIBAS_SKU, brand: "Libas", title: "Floral Printed Wrap Midi Dress", price: 3299, size: "M", sizeOos: false, image_url: "/shopper/libas-product.png", category: "WOMEN" },
   { productId: "prod-biba", sku: BIBA_SKU, brand: "Biba", title: "Ethnic A-Line Anarkali Kurta", price: 4499, size: "S", sizeOos: true, image_url: "/shopper/biba-product.png", category: "WOMEN" },
-  { productId: "prod-occasion", sku: "sku-occasion-m", brand: "Sassafras", title: "Flared Ethnic Maxi", price: 2799, size: "M", sizeOos: false, image_url: "/shopper/women-dress.jpg", category: "WOMEN" },
+  { productId: "prod-occasion", sku: "sku-occasion-m", brand: "Sassafras", title: "Flared Ethnic Maxi", price: 2799, size: "M", sizeOos: false, image_url: IMG.studioDress, category: "WOMEN" },
   { productId: "prod-occasion-2", sku: "sku-occasion-2-m", brand: "Vero Moda", title: "Pleated Party Dress", price: 2499, size: "M", sizeOos: false, image_url: "/shopper/women-floral.jpg", category: "WOMEN" },
-  { productId: "prod-linen", sku: "sku-linen-m", brand: "H&M", title: "Regular Fit Linen Shirt", price: 1999, size: "M", sizeOos: false, image_url: "/shopper/linen-product.jpg", category: "MEN" },
-  { productId: "prod-dead", sku: "sku-dead-s", brand: "Anouk", title: "Printed Straight Kurta", price: 1899, size: "S", sizeOos: true, image_url: "/shopper/women-kurta.jpg", category: "WOMEN" },
+  { productId: "prod-linen", sku: "sku-linen-m", brand: "H&M", title: "Regular Fit Linen Shirt", price: 1999, size: "M", sizeOos: false, image_url: "/shopper/linen-product.jpg", category: "MEN", description: "Regular-fit linen shirt in a speckled mid-blue. Breathable weave, full placket, easy with jeans or chinos." },
+  { productId: "prod-dead", sku: "sku-dead-s", brand: "Anouk", title: "Zari Border Silk Saree", price: 1899, size: "OS", sizeOos: true, image_url: "/shopper/women-kurta.jpg", category: "WOMEN", description: "Plum silk-blend saree with a wide gold zari border and a magenta piping. Draped with a black velvet blouse." },
   { productId: "prod-levis-wish", sku: "sku-levis-wish-32", brand: "Levi's", title: "512 Slim Tapered Jeans", price: 2999, size: "32", sizeOos: false, image_url: IMG.menJeans, category: "MEN" },
   { productId: "prod-levis-tee", sku: "sku-levis-tee-m", brand: "Levi's", title: "Relaxed Fit Graphic Tee", price: 1299, size: "M", sizeOos: false, image_url: IMG.menPolo, category: "MEN" },
-  { productId: "prod-levis-sneaker", sku: "sku-levis-sneaker-8", brand: "Levi's", title: "Low-Top Canvas Sneakers", price: 2499, size: "8", sizeOos: false, image_url: IMG.genzSneaker, category: "MEN" },
+  { productId: "prod-kurta-cmp-1", sku: "sku-kurta-cmp-1", brand: "Global Desi", title: "Cotton Straight Kurta", price: 1599, size: "M", sizeOos: false, image_url: IMG.womenBlueKurta, category: "WOMEN", description: "Sky-blue cotton kurta with a yellow floral print, mandarin collar, and mid-calf length. Pair with white palazzos." },
+  { productId: "prod-kurta-cmp-2", sku: "sku-kurta-cmp-2", brand: "Indya", title: "Embroidered Festive Kurta", price: 2199, size: "M", sizeOos: false, image_url: IMG.womenPinkAnarkali, category: "WOMEN", description: "Pale-pink flared Anarkali with floral print, a fuchsia dupatta, and matching palazzos. Festive set for functions." },
+  { productId: "prod-kurta-cmp-3", sku: "sku-kurta-cmp-3", brand: "Aurelia", title: "Yoke Printed Kurta", price: 1299, size: "M", sizeOos: false, image_url: IMG.womenBlackKurta, category: "WOMEN", description: "Black short kurta with a gold botanical print, V-neck, and three-quarter sleeves. Everyday with jeans." },
+  { productId: "prod-dress-cmp-1", sku: "sku-dress-cmp-1", brand: "AND", title: "Ruffled Off-Shoulder Mini Dress", price: 2099, size: "M", sizeOos: false, image_url: IMG.womenTop, category: "WOMEN", description: "White off-shoulder mini with a ruffled bust and eyelet tiers. Weekend dress with sneakers." },
+  { productId: "prod-dress-cmp-2", sku: "sku-dress-cmp-2", brand: "Tokyo Talkies", title: "Dark Wash Slim Jeans", price: 1699, size: "28", sizeOos: false, image_url: IMG.genzSkirt, category: "WOMEN", description: "Dark indigo slim jeans, five-pocket, clean wash. Everyday denim with a straight fall from hip to hem." },
+  { productId: "prod-shirt-cmp-1", sku: "sku-shirt-cmp-1", brand: "HERE&NOW", title: "Oxford Casual Shirt", price: 1199, size: "M", sizeOos: false, image_url: IMG.menShirt, category: "MEN" },
+  { productId: "prod-shirt-cmp-2", sku: "sku-shirt-cmp-2", brand: "WROGN", title: "Pique Casual Shirt", price: 1399, size: "M", sizeOos: false, image_url: IMG.menPolo, category: "MEN" },
 ];
 
 export function allCatalog(): CatalogProduct[] {
@@ -183,14 +312,33 @@ export function allCatalog(): CatalogProduct[] {
   return rows;
 }
 
+export function ordersFromPurchases(purchases: PurchaseRecord[]): ShopperOrder[] {
+  const catalog = allCatalog();
+  return [...purchases]
+    .sort((a, b) => Date.parse(b.purchasedAt) - Date.parse(a.purchasedAt))
+    .map((row) => ({
+      id: row.id.replace(/^po-/, "MYN-").toUpperCase(),
+      placedAt: row.purchasedAt,
+      items: [
+        {
+          brand: row.brand,
+          title: row.title,
+          price: row.price,
+          image_url: catalog.find((product) => product.productId === row.productId)?.image_url ?? "",
+        },
+      ],
+    }));
+}
+
 function searchTokens(text: string): Set<string> {
   return new Set(text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
 }
 
-export function searchCatalog(query: string): CatalogProduct[] {
+export function searchCatalog(query: string, category?: SiteCat): CatalogProduct[] {
   const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   if (words.length === 0) return [];
   return allCatalog().filter((row) => {
+    if (category && row.category !== category) return false;
     const bag = searchTokens(
       `${row.brand} ${row.title} ${row.category} ${SEARCH_WORDS[row.category]} ${PRODUCT_SEARCH[row.productId] ?? ""}`,
     );
@@ -210,7 +358,7 @@ export const SEED_ITEMS: WishlistItem[] = [
     priceAtSave: 3299,
     currentPrice: 3299,
     selectedSize: "M",
-    tag: "price_drop",
+    tag: "compare",
     bucketId: "summer",
     occasionDate: null,
     savedAt: "2026-08-10T10:00:00.000Z",
@@ -271,7 +419,7 @@ export const SEED_ITEMS: WishlistItem[] = [
     catalog: {
       brand: "Sassafras",
       title: "Flared Ethnic Maxi",
-      image_url: "/shopper/women-dress.jpg",
+      image_url: "/shopper/studio-dress.png",
     },
   },
   {
@@ -306,7 +454,7 @@ export const SEED_ITEMS: WishlistItem[] = [
     priceAtSave: 1999,
     currentPrice: 1999,
     selectedSize: "M",
-    tag: "bookmarking",
+    tag: "compare",
     bucketId: "office",
     occasionDate: null,
     savedAt: "2026-08-17T10:00:00.000Z",
@@ -330,7 +478,7 @@ export const SEED_ITEMS: WishlistItem[] = [
     priceAtSave: 2999,
     currentPrice: 2999,
     selectedSize: "32",
-    tag: "bookmarking",
+    tag: "compare",
     bucketId: "office",
     occasionDate: null,
     savedAt: "2026-08-22T10:00:00.000Z",
@@ -354,7 +502,7 @@ export const SEED_ITEMS: WishlistItem[] = [
     priceAtSave: 1899,
     currentPrice: 1899,
     selectedSize: "S",
-    tag: "price_drop",
+    tag: null,
     bucketId: null,
     occasionDate: null,
     savedAt: "2026-05-01T10:00:00.000Z",
@@ -366,7 +514,7 @@ export const SEED_ITEMS: WishlistItem[] = [
     deadNudgeShown: false,
     catalog: {
       brand: "Anouk",
-      title: "Printed Straight Kurta",
+      title: "Zari Border Silk Saree",
       image_url: "/shopper/women-kurta.jpg",
     },
   },
@@ -390,6 +538,135 @@ export type ShopperPersona = {
 
 function asUser(userId: string, base: WishlistItem, id: string, patch: Partial<WishlistItem> = {}): WishlistItem {
   return { ...structuredClone(base), user_id: userId, id, ...patch };
+}
+
+/** Extra home-rail saves — every site category, never Bookmark, no dated occasions. */
+const HOME_RAIL_MIX: Array<{ sku: string; tag: Exclude<ContextTag, "bookmarking" | "price_drop">; sizeOos?: boolean }> = [
+  { sku: "sku-chinos-32", tag: "occasion" },
+  { sku: "sku-jacket-m", tag: "size_wait" },
+  { sku: "sku-saree-os", tag: "occasion" },
+  { sku: "sku-kids-hoodie", tag: "compare" },
+  { sku: "sku-kids-shorts", tag: "occasion" },
+  { sku: "sku-home-curtain", tag: "occasion" },
+  { sku: "sku-home-dinner", tag: "compare" },
+  { sku: "sku-beauty-palette", tag: "occasion" },
+  { sku: "sku-beauty-cream", tag: "compare" },
+  { sku: "sku-genz-hoodie", tag: "compare" },
+  { sku: "sku-studio-blazer", tag: "occasion" },
+];
+
+function itemFromCatalog(
+  userId: string,
+  id: string,
+  spec: (typeof HOME_RAIL_MIX)[number],
+  savedAt: string,
+): WishlistItem {
+  const product = [...SAVED_CATALOG, ...UNSAVED_CATALOG].find((row) => row.sku === spec.sku);
+  if (!product) {
+    throw new Error(`Unknown mix sku ${spec.sku}`);
+  }
+  const oos = Boolean(spec.sizeOos || product.sizeOos);
+  return {
+    id,
+    user_id: userId,
+    productId: product.productId,
+    sku: product.sku,
+    priceAtSave: product.price,
+    currentPrice: product.price,
+    selectedSize: product.size,
+    tag: spec.tag,
+    bucketId: spec.tag === "occasion" || spec.tag === "size_wait" ? "wedding" : "summer",
+    occasionDate: null,
+    savedAt,
+    status: "active",
+    stockStatus: oos ? "oos" : "in_stock",
+    oosSince: oos ? savedAt : null,
+    sizeWatch: oos ? { size: product.size, active: true } : null,
+    lastPriceDropAt: null,
+    deadNudgeShown: false,
+    catalog: { brand: product.brand, title: product.title, image_url: product.image_url },
+  };
+}
+
+function categoryMixFor(userId: string, idPrefix: string, existing: WishlistItem[]): WishlistItem[] {
+  const taken = new Set(existing.map((row) => row.productId));
+  const rows: WishlistItem[] = [];
+  let i = 0;
+  for (const spec of HOME_RAIL_MIX) {
+    const product = UNSAVED_CATALOG.find((row) => row.sku === spec.sku);
+    if (!product || taken.has(product.productId)) continue;
+    i += 1;
+    rows.push(itemFromCatalog(userId, `${idPrefix}-mix-${i}`, spec, `2026-07-${String(i).padStart(2, "0")}T10:00:00.000Z`));
+  }
+  return rows;
+}
+
+/** One discontinued save per shopper category — fills No longer available. */
+const DEAD_MIX_SKUS = ["sku-dead-s", "sku-pic-navy-suit", "sku-pic-baby-socks", "sku-beauty-kit", "sku-genz-top"] as const;
+
+function deadMixFor(userId: string, idPrefix: string, existing: WishlistItem[]): WishlistItem[] {
+  const taken = new Set(existing.map((row) => row.productId));
+  const rows: WishlistItem[] = [];
+  let i = 0;
+  for (const sku of DEAD_MIX_SKUS) {
+    const product = [...SAVED_CATALOG, ...UNSAVED_CATALOG].find((row) => row.sku === sku);
+    if (!product || taken.has(product.productId)) continue;
+    i += 1;
+    const item = itemFromCatalog(
+      userId,
+      `${idPrefix}-gone-${i}`,
+      { sku, tag: "compare" },
+      `2026-05-${String(10 + i).padStart(2, "0")}T10:00:00.000Z`,
+    );
+    item.tag = null;
+    item.bucketId = null;
+    item.stockStatus = "discontinued";
+    item.sizeWatch = null;
+    item.oosSince = item.savedAt;
+    rows.push(item);
+  }
+  return rows;
+}
+
+function wishFromSaved(userId: string, id: string, sku: string, tag: ContextTag, savedAt: string): WishlistItem {
+  const product = SAVED_CATALOG.find((row) => row.sku === sku);
+  if (!product) throw new Error(`Unknown seed sku ${sku}`);
+  return itemFromCatalog(userId, id, { sku: product.sku, tag }, savedAt);
+}
+
+function kurtaClusterFor(userId: string, idPrefix: string): WishlistItem[] {
+  return [
+    wishFromSaved(userId, `${idPrefix}-kurta-1`, "sku-kurta-cmp-1", "occasion", "2026-07-21T10:00:00.000Z"),
+    wishFromSaved(userId, `${idPrefix}-kurta-2`, "sku-kurta-cmp-2", "compare", "2026-07-22T10:00:00.000Z"),
+    wishFromSaved(userId, `${idPrefix}-kurta-3`, "sku-kurta-cmp-3", "occasion", "2026-07-23T10:00:00.000Z"),
+  ];
+}
+
+function dressClusterFor(userId: string, idPrefix: string): WishlistItem[] {
+  return [
+    wishFromSaved(userId, `${idPrefix}-dress-1`, "sku-dress-cmp-1", "occasion", "2026-08-24T10:00:00.000Z"),
+    wishFromSaved(userId, `${idPrefix}-dress-2`, "sku-dress-cmp-2", "compare", "2026-08-25T10:00:00.000Z"),
+  ];
+}
+
+function shirtClusterFor(userId: string, idPrefix: string): WishlistItem[] {
+  return [
+    wishFromSaved(userId, `${idPrefix}-shirt-1`, "sku-shirt-cmp-1", "occasion", "2026-07-21T10:00:00.000Z"),
+    wishFromSaved(userId, `${idPrefix}-shirt-2`, "sku-shirt-cmp-2", "compare", "2026-07-22T10:00:00.000Z"),
+  ];
+}
+
+/** Four extra home-rail tiles so the second row fills on a 7-column grid. */
+function picRailFor(userId: string, idPrefix: string): WishlistItem[] {
+  const specs: Array<{ sku: string; tag: "occasion" | "compare"; at: string }> = [
+    { sku: "sku-pic-mustard-saree", tag: "occasion", at: "2026-07-21T18:00:00.000Z" },
+    { sku: "sku-pic-emerald-saree", tag: "occasion", at: "2026-07-21T16:00:00.000Z" },
+    { sku: "sku-pic-olive-maxi", tag: "occasion", at: "2026-07-21T14:00:00.000Z" },
+    { sku: "sku-pic-chunky", tag: "compare", at: "2026-07-21T12:00:00.000Z" },
+  ];
+  return specs.map((spec, index) =>
+    itemFromCatalog(userId, `${idPrefix}-pic-${index + 1}`, { sku: spec.sku, tag: spec.tag }, spec.at),
+  );
 }
 
 export function ensureSeedItem(store: ShopperStore, sku: string): WishlistItem {
@@ -426,7 +703,7 @@ const KABIR_ITEMS: WishlistItem[] = [
     sku: "sku-genz-cargo",
     priceAtSave: 1599,
     currentPrice: 1599,
-    tag: "bookmarking",
+    tag: "compare",
     bucketId: "summer",
     catalog: { brand: "Sassafras", title: "Baggy Cargo Pants", image_url: "/shopper/genz-cargo.jpg" },
   }),
@@ -435,7 +712,7 @@ const KABIR_ITEMS: WishlistItem[] = [
     sku: "sku-genz-sneaker",
     priceAtSave: 2499,
     currentPrice: 2499,
-    tag: "bookmarking",
+    tag: "compare",
     bucketId: "summer",
     catalog: { brand: "Puma", title: "Court Sneakers", image_url: "/shopper/genz-sneaker.jpg" },
   }),
@@ -455,7 +732,20 @@ export const PERSONAS: ShopperPersona[] = [
     address: "42, Koramangala 5th Block, Bengaluru, 560095",
     defaultCat: "WOMEN",
     prefs: { ...SEED_PREFS },
-    items: SEED_ITEMS,
+    items: [
+      ...SEED_ITEMS,
+      ...categoryMixFor(DEMO_USER_ID, "wish-sujata", SEED_ITEMS),
+      ...kurtaClusterFor(DEMO_USER_ID, "wish-sujata"),
+      ...dressClusterFor(DEMO_USER_ID, "wish-sujata"),
+      ...picRailFor(DEMO_USER_ID, "wish-sujata"),
+      ...deadMixFor(DEMO_USER_ID, "wish-sujata", [
+        ...SEED_ITEMS,
+        ...categoryMixFor(DEMO_USER_ID, "wish-sujata", SEED_ITEMS),
+        ...kurtaClusterFor(DEMO_USER_ID, "wish-sujata"),
+        ...dressClusterFor(DEMO_USER_ID, "wish-sujata"),
+        ...picRailFor(DEMO_USER_ID, "wish-sujata"),
+      ]),
+    ],
   },
   {
     id: "priya",
@@ -470,7 +760,18 @@ export const PERSONAS: ShopperPersona[] = [
     address: "11, Bandra West, Mumbai, 400050",
     defaultCat: "WOMEN",
     prefs: { ...SEED_PREFS },
-    items: PRIYA_ITEMS,
+    items: [
+      ...PRIYA_ITEMS,
+      ...categoryMixFor("user-priya", "wish-priya", PRIYA_ITEMS),
+      ...kurtaClusterFor("user-priya", "wish-priya"),
+      ...dressClusterFor("user-priya", "wish-priya"),
+      ...deadMixFor("user-priya", "wish-priya", [
+        ...PRIYA_ITEMS,
+        ...categoryMixFor("user-priya", "wish-priya", PRIYA_ITEMS),
+        ...kurtaClusterFor("user-priya", "wish-priya"),
+        ...dressClusterFor("user-priya", "wish-priya"),
+      ]),
+    ],
   },
   {
     id: "kabir",
@@ -485,7 +786,16 @@ export const PERSONAS: ShopperPersona[] = [
     address: "7, Greater Kailash I, Delhi, 110048",
     defaultCat: "GENZ",
     prefs: { priceDropAlerts: false, sizeRestockAlerts: true, occasionReminders: false },
-    items: KABIR_ITEMS,
+    items: [
+      ...KABIR_ITEMS,
+      ...categoryMixFor("user-kabir", "wish-kabir", KABIR_ITEMS),
+      ...shirtClusterFor("user-kabir", "wish-kabir"),
+      ...deadMixFor("user-kabir", "wish-kabir", [
+        ...KABIR_ITEMS,
+        ...categoryMixFor("user-kabir", "wish-kabir", KABIR_ITEMS),
+        ...shirtClusterFor("user-kabir", "wish-kabir"),
+      ]),
+    ],
   },
 ];
 
@@ -499,6 +809,7 @@ export class ShopperStore {
   bagAddonSkus: string[] = [];
   addToCarts = 0;
   purchases: PurchaseRecord[] = [];
+  orders: ShopperOrder[] = [];
   priceHistory: PricePoint[] = [];
   reviews: ProductReview[] = [];
   sizingReturns: SizingReturn[] = [];
@@ -522,6 +833,7 @@ export class ShopperStore {
     this.bagAddonSkus = [];
     this.addToCarts = 0;
     this.purchases = structuredClone(purchasesFor(persona.userId));
+    this.orders = ordersFromPurchases(this.purchases);
     this.priceHistory = structuredClone(SEED_PRICE_HISTORY);
     this.reviews = structuredClone(SEED_REVIEWS);
     this.sizingReturns = structuredClone(returnsFor(persona.userId));

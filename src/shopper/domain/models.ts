@@ -1,4 +1,4 @@
-export type ContextTag = "occasion" | "price_drop" | "size_wait" | "bookmarking";
+export type ContextTag = "occasion" | "price_drop" | "size_wait" | "compare" | "bookmarking";
 
 export type StockStatus = "in_stock" | "oos" | "discontinued";
 
@@ -70,6 +70,7 @@ export const TAG_LABEL: Record<ContextTag, string> = {
   occasion: "Occasion",
   price_drop: "Price drop",
   size_wait: "My size",
+  compare: "Compare",
   bookmarking: "Bookmark",
 };
 
@@ -77,8 +78,13 @@ export const TAG_EMOJI: Record<ContextTag, string> = {
   occasion: "🎉",
   price_drop: "💸",
   size_wait: "📦",
+  compare: "🆚",
   bookmarking: "🤔",
 };
+
+export function isLiveTag(tag: ContextTag | null | undefined): tag is "occasion" | "size_wait" | "compare" {
+  return tag === "occasion" || tag === "size_wait" || tag === "compare";
+}
 
 export function formatInr(amount: number): string {
   return `₹${amount.toLocaleString("en-IN")}`;

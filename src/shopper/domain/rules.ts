@@ -18,11 +18,7 @@ export function canSendPriceDrop(
   prefs: NotificationPrefs,
   nowIso: string,
 ): { ok: true } | { ok: false; reason: string } {
-  if (item.status !== "active") return { ok: false, reason: "inactive" };
-  if (!prefs.priceDropAlerts) return { ok: false, reason: "pref_off" };
-  if (!meetsPriceThreshold(item.priceAtSave, item.currentPrice)) return { ok: false, reason: "threshold" };
-  if (withinPriceCooldown(item.lastPriceDropAt, nowIso)) return { ok: false, reason: "cooldown" };
-  return { ok: true };
+  return { ok: false, reason: "disabled" };
 }
 
 export function canSendRestock(

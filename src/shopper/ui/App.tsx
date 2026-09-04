@@ -11,7 +11,6 @@ import { similarVariationLabel } from "../domain/similarItems";
 import type { StyleReview, StyleShot } from "../domain/stylingLooks";
 import { sizeChartFor, sizesFor, type SizeChart } from "../domain/sizeChart";
 import type { OrderRecOffer } from "../domain/orderRecs";
-import type { StylistRec } from "../domain/stylist";
 import {
   TAG_EMOJI,
   TAG_LABEL,
@@ -88,8 +87,7 @@ type Screen =
   | { name: "orders" }
   | { name: "success"; orderId: string; extras?: string[] }
   | { name: "settings" }
-  | { name: "similar"; fromId: string }
-  | { name: "stylist" };
+  | { name: "similar"; fromId: string };
 
 type TagSheet =
   | { mode: "add"; itemId: string }
@@ -101,7 +99,7 @@ function emptyShopper() {
     restocking: [] as WishlistView[],
     dead: [] as WishlistView[],
     inbox: [] as InboxRow[],
-    bag: null as WishlistView | null,
+    bag: [] as WishlistView[],
     bagAddons: [] as CatalogProduct[],
     orders: [] as ShopperOrder[],
     catalog: [] as CatalogProduct[],
@@ -118,7 +116,7 @@ function readShopper(runtime: ShopperRuntime, occasionOnly = false) {
     restocking: list.restocking,
     dead: list.dead,
     inbox: unwrap(runtime.api.getInbox()).items,
-    bag: bagState.item,
+    bag: bagState.items ?? (bagState.item ? [bagState.item] : []),
     bagAddons: bagState.addons,
     orders: unwrap(runtime.api.getOrders()).items,
     catalog: unwrap(runtime.api.getCatalog()).products,
@@ -139,7 +137,7 @@ async function readShopperAsync(runtime: ShopperRuntime, occasionOnly = false) {
     restocking: list.restocking,
     dead: list.dead,
     inbox: inbox.items,
-    bag: bagState.item,
+    bag: bagState.items ?? (bagState.item ? [bagState.item] : []),
     bagAddons: bagState.addons,
     orders: orders.items,
     catalog: catalog.products,
@@ -354,10 +352,6 @@ function Shell() {
               onAdd={startAdd}
               onAddToBag={addArrivalToBag}
               onOpenWishlist={(id) => goWishlist(id ? { focusIds: [id] } : undefined)}
-              onOpenStylist={() => {
-                setDrawerOpen(false);
-                setScreen({ name: "stylist" });
-              }}
             />
           ) : null}
           {screen.name === "wishlist" ? (
@@ -444,7 +438,7 @@ function Shell() {
           ) : null}
           {screen.name === "bag" ? (
             <Bag
-              item={bag}
+              items={bag}
               addons={bagAddons}
               onBack={() => (bagBack === "home" ? setScreen({ name: "home" }) : goWishlist())}
               onCheckout={() => setScreen({ name: "checkout" })}
@@ -455,7 +449,7 @@ function Shell() {
           ) : null}
           {screen.name === "checkout" ? (
             <Checkout
-              item={bag}
+              items={bag}
               addons={bagAddons}
               persona={persona}
               onBack={() => setScreen({ name: "bag" })}
@@ -488,13 +482,6 @@ function Shell() {
               onOpenCatalog={(sku) => openCatalog(sku, { name: "similar", fromId: screen.fromId })}
               onAdd={startAdd}
               onAddToBag={addArrivalToBag}
-            />
-          ) : null}
-          {screen.name === "stylist" ? (
-            <StylistPicks
-              onBack={goHome}
-              onOpenCatalog={(sku) => openCatalog(sku, { name: "stylist" })}
-              onAdd={startAdd}
             />
           ) : null}
     </>
@@ -577,15 +564,6 @@ function Shell() {
                   type="button"
                   onClick={() => {
                     setDrawerOpen(false);
-                    setScreen({ name: "stylist" });
-                  }}
-                >
-                  <IconSparkle /> Stylist
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDrawerOpen(false);
                     setScreen({ name: "orders" });
                   }}
                 >
@@ -642,7 +620,7 @@ function Shell() {
               }}
             >
               <IconBag />
-              {bag ? <span className="badge-count">1</span> : null}
+              {bag.length ? <span className="badge-count">{bag.length + bagAddons.length}</span> : null}
               <span>Bag</span>
             </button>
           </div>
@@ -793,7 +771,6 @@ function Home({
   onAdd,
   onAddToBag,
   onOpenWishlist,
-  onOpenStylist,
 }: {
   catalog: CatalogProduct[];
   saved: WishlistView[];
@@ -812,7 +789,6 @@ function Home({
   onAdd: (product: CatalogProduct) => void;
   onAddToBag: (product: CatalogProduct) => void;
   onOpenWishlist: (itemId?: string) => void;
-  onOpenStylist: () => void;
 }) {
   const slides = SITE_HEROES[activeCat];
   const searching = Boolean(query.trim());
@@ -913,15 +889,6 @@ function Home({
             ))}
           </div>
         </div>
-      <div className="home-pad">
-        <div className="rail-head">
-          <h3 className="section-title">Styled for you</h3>
-          <button type="button" className="text-link" onClick={onOpenStylist}>
-            See picks
-          </button>
-        </div>
-        <p className="lede stylist-lede">From your buys — not another piece you already own.</p>
-      </div>
         </>
       )}
       <div className="home-pad">
@@ -1456,7 +1423,11 @@ function QualityCard({
 }) {
   const press = useLongPress(() => onEditTag(item.id));
   const catalogRow = allCatalog().find((row) => row.productId === item.productId);
-  const brief = qualityBrief(item, catalogRow?.description, reviews);
+  const brief = qualityBrief(
+    { ...item, category: catalogRow?.category },
+    catalogRow?.description,
+    reviews,
+  );
   return (
     <article
       className={`card quality-card${focused ? " focused" : ""}`}
@@ -1503,7 +1474,7 @@ function QualityCard({
         </dl>
         {brief.photos.length ? (
           <div className="quality-photos">
-            <p>Photos</p>
+            <p>Real customer photo</p>
             <div>
               {brief.photos.map((shot) => (
                 <img key={shot.id} src={shot.image_url} alt={`${item.catalog.title} photo`} />
@@ -1880,13 +1851,13 @@ function CatalogPdpBody({
 }
 
 function Bag({
-  item,
+  items,
   addons,
   onBack,
   onCheckout,
   onAddAddon,
 }: {
-  item: WishlistView | null;
+  items: WishlistView[];
   addons: CatalogProduct[];
   onBack: () => void;
   onCheckout: () => void;
@@ -1896,18 +1867,23 @@ function Bag({
   const [offer, setOffer] = useState<OrderRecOffer | null>(null);
   const [looks, setLooks] = useState<JeansLook[]>([]);
   const [pick, setPick] = useState(0);
+  const last = items[items.length - 1] ?? null;
   const addonTotal = addons.reduce((sum, row) => sum + row.price, 0);
-  const bagDesc = item ? allCatalog().find((row) => row.productId === item.productId)?.description : undefined;
+  const itemsTotal = items.reduce((sum, row) => sum + row.currentPrice, 0);
 
   useEffect(() => {
-    if (!item) return;
+    if (!last) {
+      setOffer(null);
+      setLooks([]);
+      return;
+    }
     const recs = runtime.api.getOrderRecs();
     thenApi(Promise.resolve(recs), (body) => {
       if (body.picks.length) setOffer(body);
     });
-    const pairs = runtime.api.getLookPairs(item.id);
+    const pairs = runtime.api.getLookPairs(last.id);
     thenApi(Promise.resolve(pairs), (body) => setLooks(body.items));
-  }, [runtime, item]);
+  }, [runtime, last?.id]);
 
   return (
     <>
@@ -1917,39 +1893,46 @@ function Bag({
         </button>
         <h1>Shopping Bag</h1>
       </div>
-      {!item ? (
+      {!items.length ? (
         <p className="empty">Your bag is empty</p>
       ) : (
         <>
           <div className="bag-layout">
           <div className="bag-col">
-          <article className="card bag-item">
-            <ProductThumb brand={item.catalog.brand} title={item.catalog.title} image={item.catalog.image_url} />
-            <div>
-            <strong>{item.catalog.brand.toUpperCase()}</strong>
-            <div>{item.catalog.title}</div>
-            {bagDesc ? <p className="wish-desc">{bagDesc}</p> : null}
-            <div className="price">{formatInr(item.currentPrice)}</div>
-            {item.selectedSize ? <p className="meta">Size {item.selectedSize}</p> : null}
-            {addons.map((row) => (
-              <p key={row.sku} className="meta">
-                + {row.title} · {formatInr(row.price)}
-              </p>
-            ))}
-            {addons.length ? <div className="price">Total {formatInr(item.currentPrice + addonTotal)}</div> : null}
-            </div>
-          </article>
+          {items.map((item) => {
+            const bagDesc = allCatalog().find((row) => row.productId === item.productId)?.description;
+            return (
+              <article key={item.id} className="card bag-item">
+                <ProductThumb brand={item.catalog.brand} title={item.catalog.title} image={item.catalog.image_url} />
+                <div>
+                <strong>{item.catalog.brand.toUpperCase()}</strong>
+                <div>{item.catalog.title}</div>
+                {bagDesc ? <p className="wish-desc">{bagDesc}</p> : null}
+                <div className="price">{formatInr(item.currentPrice)}</div>
+                {item.selectedSize ? <p className="meta">Size {item.selectedSize}</p> : null}
+                </div>
+              </article>
+            );
+          })}
+          {addons.map((row) => (
+            <p key={row.sku} className="meta bag-addon-line">
+              + {row.title} · {formatInr(row.price)}
+            </p>
+          ))}
+          {items.length > 1 || addons.length ? (
+            <div className="price bag-total">Total {formatInr(itemsTotal + addonTotal)}</div>
+          ) : null}
           <button className="cta bag-place" type="button" onClick={onCheckout}>
             Place order
           </button>
           </div>
-          {offer ? (
+          {offer && last ? (
             <OrderRecSheet
               offer={offer}
               pick={pick}
               looks={looks}
-              bagTitle={item.catalog.title}
-              bagCategory={allCatalog().find((row) => row.productId === item.productId)?.category}
+              bagTitle={last.catalog.title}
+              bagCategory={allCatalog().find((row) => row.productId === last.productId)?.category}
               onPick={setPick}
               onAdd={(sku) => {
                 setOffer(null);
@@ -1966,13 +1949,13 @@ function Bag({
 }
 
 function Checkout({
-  item,
+  items,
   addons,
   persona,
   onBack,
   onPay,
 }: {
-  item: WishlistView | null;
+  items: WishlistView[];
   addons: CatalogProduct[];
   persona: ShopperPersona;
   onBack: () => void;
@@ -1980,7 +1963,8 @@ function Checkout({
 }) {
   const [method, setMethod] = useState<"upi" | "cod">("upi");
   const addonTotal = addons.reduce((sum, row) => sum + row.price, 0);
-  const total = (item?.currentPrice ?? 0) + addonTotal;
+  const itemsTotal = items.reduce((sum, row) => sum + row.currentPrice, 0);
+  const total = itemsTotal + addonTotal;
   return (
     <div className="checkout-page">
       <div className="subhead">
@@ -1989,7 +1973,7 @@ function Checkout({
         </button>
         <h1>Checkout</h1>
       </div>
-      {!item ? (
+      {!items.length ? (
         <p className="empty">Your bag is empty</p>
       ) : (
         <>
@@ -1997,6 +1981,18 @@ function Checkout({
             <p className="checkout-kicker">Delivery address</p>
             <strong>{persona.name}</strong>
             <p>{persona.address}</p>
+            <div className="checkout-lines">
+              {items.map((item) => (
+                <p key={item.id} className="meta">
+                  {item.catalog.brand} · {item.catalog.title} · {formatInr(item.currentPrice)}
+                </p>
+              ))}
+              {addons.map((row) => (
+                <p key={row.sku} className="meta">
+                  + {row.title} · {formatInr(row.price)}
+                </p>
+              ))}
+            </div>
           </section>
           <section className="checkout-block">
             <p className="checkout-kicker">Payment method</p>
@@ -2119,7 +2115,9 @@ function OrderRecSheet({
             <p className="kicker">Why we picked this</p>
             <p className="meta">{rec.why}</p>
             <span className="rec-match">{rec.match}</span>
-            <SizeChartLink title={rec.product.title} category={rec.product.category} />
+            <div className="rec-chart">
+              <SizeChartLink title={rec.product.title} category={rec.product.category} />
+            </div>
           </div>
         </div>
         {tiles.length ? (
@@ -2294,86 +2292,6 @@ function PrefRow({
   );
 }
 
-function StylistPicks({
-  onBack,
-  onOpenCatalog,
-  onAdd,
-}: {
-  onBack: () => void;
-  onOpenCatalog: (sku: string) => void;
-  onAdd: (product: CatalogProduct) => void;
-}) {
-  const runtime = useShopperRuntime();
-  const [items, setItems] = useState<StylistRec[]>(() => peekApi(runtime.api.getStylistRecs(5))?.items ?? []);
-
-  useEffect(() => {
-    const result = runtime.api.getStylistRecs(5);
-    if (!isThenable(result)) {
-      setItems(result.ok ? result.body.items : []);
-      return;
-    }
-    let cancelled = false;
-    void result.then((row) => {
-      if (!cancelled && row.ok) setItems(row.body.items);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [runtime]);
-
-  return (
-    <>
-      <div className="subhead">
-        <button type="button" onClick={onBack} aria-label="Back">
-          ‹
-        </button>
-        <h1>Styled for you</h1>
-      </div>
-      <p className="lede">
-        Picked from what you’ve bought, how pieces have been fitting, and how the price has been moving.
-      </p>
-      {items.length === 0 ? (
-        <p className="empty">No stylist picks right now</p>
-      ) : (
-        items.map((row) => <StylistCard key={row.product.sku} row={row} onOpenCatalog={onOpenCatalog} onAdd={onAdd} />)
-      )}
-    </>
-  );
-}
-
-function StylistCard({
-  row,
-  onOpenCatalog,
-  onAdd,
-}: {
-  row: StylistRec;
-  onOpenCatalog: (sku: string) => void;
-  onAdd: (product: CatalogProduct) => void;
-}) {
-  return (
-    <article className="card wishlist-card" data-product-id={row.product.productId}>
-      <ProductThumb
-        brand={row.product.brand}
-        title={row.product.title}
-        image={row.product.image_url}
-        onClick={() => onOpenCatalog(row.product.sku)}
-      />
-      <div>
-        <strong>{row.product.brand.toUpperCase()}</strong>
-        <div>{row.product.title}</div>
-        <div className="price">{formatInr(row.product.price)}</div>
-        {row.flags.genuineDiscount ? <span className="stylist-chip">Priced lower than usual</span> : null}
-        {row.flags.fakeSale ? <span className="stylist-chip is-warn">Not a real drop</span> : null}
-        <p className="stylist-reason">{row.reason}</p>
-        <SizeChartLink title={row.product.title} category={row.product.category} />
-        <button type="button" className="wish-cta is-notify" onClick={() => onAdd(row.product as CatalogProduct)}>
-          Add to Wishlist
-        </button>
-      </div>
-    </article>
-  );
-}
-
 function Similar({
   fromId,
   onBack,
@@ -2464,11 +2382,11 @@ function usePressClick(action: (id: string) => void) {
     onPointerDown: () => {
       pressed.current = id;
     },
-    onClick: (event: { detail: number }) => {
+    onClick: (event: { detail: number; preventDefault?: () => void }) => {
       const fromThis = pressed.current === id;
       pressed.current = null;
-      // Ignore hover and the leftover mouse-up from the control that opened this sheet.
-      if (event.detail > 0 && !fromThis) return;
+      // Only accept a click that also pressed this control — blocks leftover open-sheet clicks.
+      if (!fromThis) return;
       action(id);
     },
   });
@@ -2490,8 +2408,15 @@ function TagSheet({
   const [date, setDate] = useState("");
 
   useEffect(() => {
+    touched.current = false;
+    setAskDate(false);
+    setDate("");
+  }, [sheet.mode, sheet.itemId]);
+
+  useEffect(() => {
     if (sheet.mode !== "add" || askDate) return;
     const timer = window.setTimeout(() => {
+      // Timeout only closes the sheet — never picks a reason for the shopper.
       if (!touched.current) dismissRef.current();
     }, 6000);
     return () => window.clearTimeout(timer);
@@ -2508,15 +2433,18 @@ function TagSheet({
 
   const bindReason = usePressClick((id) => choose(id as ContextTag));
   const bindSheet = usePressClick((id) => {
-    if (id === "dismiss") onDismiss();
+    if (id === "dismiss") {
+      touched.current = true;
+      onDismiss();
+    }
   });
 
   return (
     <div
       className="sheet-backdrop"
       onClick={() => {
-        if (sheet.mode === "add") onDismiss();
-        else onDismiss();
+        touched.current = true;
+        onDismiss();
       }}
     >
       <div
@@ -2850,16 +2778,6 @@ function IconMyntraM() {
         <ellipse cx="34" cy="21.2" rx="6.6" ry="19" transform="rotate(-20 34 21.2)" fill="url(#myn-orange)" />
         <ellipse cx="45.5" cy="22" rx="6.6" ry="19" transform="rotate(20 45.5 22)" fill="url(#myn-pink)" />
       </g>
-    </svg>
-  );
-}
-function IconSparkle() {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M12 3.2 13.4 8 18 9.4 13.4 10.8 12 15.6 10.6 10.8 6 9.4 10.6 8 12 3.2Zm6.4 9.2 0.7 2.3 2.3.7-2.3.7-.7 2.3-.7-2.3-2.3-.7 2.3-.7.7-2.3ZM5.6 13.6 6.1 15l1.4.4-1.4.4-.5 1.4-.5-1.4-1.4-.4 1.4-.4.5-1.4Z"
-      />
     </svg>
   );
 }

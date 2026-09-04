@@ -1,9 +1,9 @@
 # Myntra Wishlist — Evaluation (Comparison MVP)
 
-**Sources:** [ProblemStatement_Solution_MVP.md](./ProblemStatement_Solution_MVP.md) v3.0; [Architecture_Wishlist_Reengagement_MVP.md](./Architecture_Wishlist_Reengagement_MVP.md); [Implementation_Wishlist_Reengagement_MVP.md](./Implementation_Wishlist_Reengagement_MVP.md) P7–P8  
+**Sources:** [ProblemStatement_Solution_MVP.md](./ProblemStatement_Solution_MVP.md) v3.1; [Architecture_Wishlist_Reengagement_MVP.md](./Architecture_Wishlist_Reengagement_MVP.md); [Implementation_Wishlist_Reengagement_MVP.md](./Implementation_Wishlist_Reengagement_MVP.md) P7–P8  
 **QA:** [EdgeCases_Wishlist_Reengagement_MVP.md](./EdgeCases_Wishlist_Reengagement_MVP.md)
 
-This file defines *how we know this MVP worked*. It scores the **shopper** product: **compare** plus **quality, fit, and occasion** decision tabs. It does **not** score the discovery-engine dashboard. It does **not** treat a painted 15% cart rate as success.
+This file defines *how we know this MVP worked*. It scores the **shopper** product: **compare** plus **quality, fit, and occasion** decision tabs. It does **not** score the discovery-engine dashboard. It does **not** treat a painted 15% cart rate as success. It does **not** score a customer-facing Stylist.
 
 **Supersedes:** discovery-engine eval (cite-or-refuse, G-COMP, D9-as-success); UGC + one-shot price-drop eval; “F2 CTR is the ship metric.”
 
@@ -18,8 +18,8 @@ Heart tap → quality | fit | compare | occasion
   → matching tab helps her decide
   → same-type saves also cluster (category + article)
   → compare cards: price, stars, quality note, Lowest here
-  → bag one
-  → without fake scores, wrong-SKU UGC, inbox blast, or a conversion %
+  → bag one or more (multi-item bag)
+  → without fake scores, wrong-SKU UGC, Stylist chrome, inbox blast, or a conversion %
 ```
 
 **A filled wishlist→cart % from demo checkout is a fail** until `shop.internal_orders` is on.
@@ -35,6 +35,7 @@ Heart tap → quality | fit | compare | occasion
 | Raw notification volume | 18–24 harm — shopper has **no inbox** |
 | Fake quality 8.4/10 or 87% fit | Honesty fail |
 | Groq / LLM fit cards | Not in this product |
+| Stylist / See picks engagement | Stylist chrome removed |
 
 ---
 
@@ -44,7 +45,7 @@ A later layer does not skip an earlier fail.
 
 | Layer | When | Question | Pass |
 |-------|------|----------|------|
-| **L0 Constraint** | Every review | No fake conversion? F5 never push? No F2 send? No inbox / ⚙️? Photos honest? No TTS / fake score / 87%? | EdgeCases S0 green |
+| **L0 Constraint** | Every review | No fake conversion? F5 never push? No F2 send? No inbox / ⚙️ / Stylist? Photos honest? No TTS / fake score / 87%? Multi-item bag? | EdgeCases S0 green |
 | **L1 Compare adoption** | P7 | Do clusters appear? Do people open them? | CMP-SHOWN, CMP-OPEN |
 | **L2 Decision quality** | P7–P8 | Right cluster + Quality / fit / Occasion cards help her pick? | EC-COMP, EC-QTY, EC-FIT |
 | **L3 Companion + guardrail** | P1–P6 | Tags skippable? Occasion date optional? Dead never a push? | F1/F4/F5 |
@@ -66,7 +67,7 @@ A later layer does not skip an earlier fail.
 | Q5 | Is discontinued kept off compare? | L0/L2 | EC-COMP-002, EC-DEAD-007 |
 | Q6 | Are Women dresses kept off Kids frocks? | L2 | EC-COMP-003 |
 | Q7 | Do saves still get a usable why (or honest null)? | L3 | Four live tags + skip |
-| Q8 | Does **Quality & trust** show fabric, stars, N reviews, quality quotes, and 2 real photos — with no Compare CTA? | L2 | EC-QTY-001–005 |
+| Q8 | Does **Quality & trust** show fabric, stars, 150+ reviews, quality/colour/texture quotes, and 2 real customer photos — with no Compare CTA? | L2 | EC-QTY-001–007 |
 | Q9 | Does **My size** judge fit from past buys (not stock watch)? | L2 | EC-FIT-001–005 |
 | Q10 | Does **Occasion** show when she’ll wear it, with date optional? | L2/L3 | Occasion tab + EC-TAG-005–006 |
 | Q11 | Did we avoid blasting 18–24 (no inbox, no F2)? | L0/L3 | No shopper inbox; G-PD |
@@ -158,14 +159,14 @@ Automated (map to EdgeCases):
 | In-stock filter | EC-COMP-006–007 |
 | Not this | EC-COMP-008 |
 | Honesty | EC-COMP-009–011; G-TTS, G-SCORE, G-PHOTO |
-| Quality tab | EC-QTY-001–005 |
+| Quality tab | EC-QTY-001–007 |
 | Fit tab | EC-FIT-001–005 |
-| Bag | EC-COMP-012 |
+| Bag | EC-COMP-012, EC-BAG-001–003 |
 | Route vs `:id` | EC-COMP-019 |
 
-**Independent PM task (~12 min):** Sujata → Compare dresses (price / stars / note / Lowest here) → In stock only → Not this → bag. Quality & trust (fabric, quotes, 2 photos, no Compare link). My size (fit sentence, not watching size). Occasion (date). Kurtas (no Anouk discontinued). Switch to Kabir → shirts.
+**Independent PM task (~12 min):** Sujata → Compare dresses (price / stars / note / Lowest here) → In stock only → Not this → bag → add a second item → both in Bag. Quality & trust (fabric, 150+ reviews, quotes, Real customer photo, no Compare link). My size (fit sentence, not watching size). Occasion (date). Kurtas (no Anouk discontinued). Switch to Kabir → shirts. Confirm Profile has **no Stylist**.
 
-**Fail if:** they think proto checkout is the 15% KPI; they see TTS, 8.4/10, or 87%; they see a kids frock in Women dresses; they see an inbox / ⚙️; they get a price-drop ping.
+**Fail if:** they think proto checkout is the 15% KPI; they see TTS, 8.4/10, or 87%; they see a kids frock in Women dresses; they see an inbox / ⚙️ / Stylist; they get a price-drop ping; second bag add replaces the first.
 
 ---
 

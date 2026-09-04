@@ -805,7 +805,7 @@ export class ShopperStore {
   items: WishlistItem[] = [];
   inbox: InboxRow[] = [];
   prefs: NotificationPrefs = { ...SEED_PREFS };
-  bagItemId: string | null = null;
+  bagItemIds: string[] = [];
   bagAddonSkus: string[] = [];
   addToCarts = 0;
   purchases: PurchaseRecord[] = [];
@@ -829,7 +829,7 @@ export class ShopperStore {
     this.items = structuredClone(persona.items);
     this.inbox = [];
     this.prefs = { ...persona.prefs };
-    this.bagItemId = null;
+    this.bagItemIds = [];
     this.bagAddonSkus = [];
     this.addToCarts = 0;
     this.purchases = structuredClone(purchasesFor(persona.userId));

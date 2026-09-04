@@ -4,7 +4,7 @@
 
 Use this file as the QA catalog. Each case has a stable ID for tickets and tests.
 
-**Supersedes:** discovery-engine catalog (`EC-CMP-*` is **retired** — do not reuse those IDs). Compare cases use **`EC-COMP-*`**. Also supersedes PRD v2.0 tag set (`styling_unsure` / `bookmarking`) and “⚙️ on wishlist” rows where they conflict with PRD v3.0.
+**Supersedes:** discovery-engine catalog (`EC-CMP-*` is **retired** — do not reuse those IDs). Compare cases use **`EC-COMP-*`**. Also supersedes PRD v2.0 tag set (`styling_unsure` / `bookmarking`) and “⚙️ on wishlist” rows where they conflict with PRD v3.1.
 
 ---
 
@@ -31,6 +31,7 @@ Use this file as the QA catalog. Each case has a stable ID for tickets and tests
 | `EC-DEAD` | F5 dead item |
 | `EC-PREF` | F6 prefs (API) + no shopper inbox |
 | `EC-EMP` | Empty / honest metrics |
+| `EC-BAG` | Multi-item shopping bag |
 | `EC-SEC` | PII / prefs storage |
 
 ---
@@ -42,11 +43,13 @@ Use this file as the QA catalog. Each case has a stable ID for tickets and tests
 - Date picker **only** after Occasion. Skip date → `occasionDate: null`.
 - Compare: same `SiteCat` + article; ≥2; cap 5 newest; discontinued excluded. Cards: price, stars, quality note, Lowest here — **not** colour/design/on-body columns.
 - My size tab: fit sentence from past buys. **Not** “watching size” / availability. Bucket is `tag === size_wait` only.
-- Quality tab: fabric, stars, N reviews, quality quotes, 2 real photos. No Compare CTA. No fake `x/10`.
+- Quality tab: fabric, stars, **150+** reviews, quality/colour/texture quotes, 2 real customer photos (kids pool for kids). No Compare CTA. No fake `x/10`.
 - F3 (API): watch only if size OOS **at save**; exact size; no re-fire after purchase. Not what the My size tab claims.
 - F4: send requires `occasionDate`; ≤7 days; batch same date; no ping after date passed. Tab still shows undated occasion rows.
 - F5: in-app only; 60d OOS or discontinued; once per item; **not in compare**.
-- Shopper UI: **no inbox**, **no ⚙️**.
+- Shopper UI: **no inbox**, **no ⚙️**, **no Stylist**.
+- Bag: multi-item (`bagItemIds[]`); second add keeps the first.
+- Tag sheet: open must **not** auto-select a reason from a leftover click.
 - F2: **do not send** a price-drop notification.
 - Wishlist→cart is **unavailable** in proto. Empty ≠ `0%` or `15%`.
 - Reviews: no “true to size”. Quality: no fake `8.4/10`. No Groq / 87% fit score.
@@ -61,7 +64,7 @@ Use this file as the QA catalog. Each case has a stable ID for tickets and tests
 | EC-COMP-002 | S1 | P7 | Discontinued kurta + live kurtas | Discontinued **not** in cluster (F5 only) |
 | EC-COMP-003 | S1 | P7 | Women dress + Kids frock | **No** shared cluster |
 | EC-TAG-001 | S1 | P1 | User skips context tag sheet | Save with `tag: null`. No re-prompt |
-| EC-QTY-001 | S1 | P8 | Quality & trust tab | Fabric, stars, N reviews, quality quotes, 2 photos; **no** Compare CTA |
+| EC-QTY-001 | S1 | P8 | Quality & trust tab | Fabric, stars, 150+ reviews, quality/colour/texture quotes, 2 photos; **no** Compare CTA |
 | EC-FIT-001 | S1 | P8 | My size on a smaller-than-usual save | Fit sentence (`may_not_fit` / `will_fit` / `unsure`) — **not** “Watching size” |
 | EC-PD-001 | S0 | P3 | Price drops | **No** inbox / push row |
 | EC-PREF-001 | S0 | P6 | OS notifications OFF | F5 in-app nudge still shows |
@@ -84,7 +87,7 @@ Use this file as the QA catalog. Each case has a stable ID for tickets and tests
 | EC-COMP-009 | S1 | P7 | Review copy | No “true to size” |
 | EC-COMP-010 | S1 | P7 | Quality line | No `\d / 10` score |
 | EC-COMP-011 | S1 | P7 | Card photo | This SKU’s catalog image — not a different dress |
-| EC-COMP-012 | S2 | P7 | MOVE TO BAG on in-stock card | Shopping Bag contains that SKU |
+| EC-COMP-012 | S2 | P7 | MOVE TO BAG on in-stock card | Shopping Bag contains that SKU; prior bag lines remain |
 | EC-COMP-013 | S2 | P7 | OOS card | No bag CTA; watching / OOS label |
 | EC-COMP-014 | S1 | P7 | Cheapest flag | Lowest **visible** price (after filter / Not this) |
 | EC-COMP-015 | S2 | P7 | Sujata | Dresses **and** kurtas clusters when counts ≥2 |
@@ -102,6 +105,7 @@ Use this file as the QA catalog. Each case has a stable ID for tickets and tests
 | EC-TAG-002 | S2 | P1 | “Waiting for Price Drop” on sheet | **Forbidden** |
 | EC-TAG-003 | S2 | P1 | Fourth tag requires scroll | Fail AC |
 | EC-TAG-004 | S1 | P1 | Skip mid-sheet | `tag: null` |
+| EC-TAG-011 | S1 | P1 | Sheet opens after heart; leftover click | **No** auto-selected reason; Skip / dismiss stay untagged |
 | EC-TAG-005 | S2 | P1 | Date picker for non-occasion tags | Forbidden |
 | EC-TAG-006 | S2 | P1 | Occasion selected, date skipped | `tag: occasion`, `occasionDate: null` — F4 will not fire |
 | EC-TAG-007 | S2 | P1 | Edit away from occasion | Chip updates; date cleared; F4 cancelled |
@@ -115,10 +119,12 @@ Use this file as the QA catalog. Each case has a stable ID for tickets and tests
 
 | ID | Sev | Phase | Scenario | Expect |
 |----|-----|-------|----------|--------|
-| EC-QTY-002 | S1 | P8 | Quality quotes | Comments that say quality is good for **this** product; no TTS |
-| EC-QTY-003 | S0 | P8 | Photos | Dedicated Libas UGC if ≥2, else catalog + type-matched real photo — **never** a cropped PDP of a different SKU as UGC |
+| EC-QTY-002 | S1 | P8 | Quality quotes | Comments on quality / colour / texture for **this** product; no TTS |
+| EC-QTY-003 | S0 | P8 | Photos | Dedicated UGC if ≥2, else type-matched real photo labelled **Real customer photo** — **never** a cropped PDP of a different SKU as UGC |
 | EC-QTY-004 | S2 | P8 | Compare link on Quality card | **Forbidden** |
 | EC-QTY-005 | S1 | P8 | Fake quality score `x/10` | **Forbidden** |
+| EC-QTY-006 | S1 | P8 | Review count | Display count **≥150** |
+| EC-QTY-007 | S1 | P8 | Kids quality photos | Kids / frock SKUs use **kids** photo pool only — never women Libas UGC |
 
 ## 4c. My size / fit
 
@@ -128,6 +134,14 @@ Use this file as the QA catalog. Each case has a stable ID for tickets and tests
 | EC-FIT-003 | S2 | P8 | “Watching size” / restock copy on SizeFitCard | **Forbidden** |
 | EC-FIT-004 | S1 | P8 | OOS row tagged `compare` | **Not** in My size bucket |
 | EC-FIT-005 | S0 | P8 | 87% / Groq fit score | **Forbidden** |
+
+## 4d. Bag
+
+| ID | Sev | Phase | Scenario | Expect |
+|----|-----|-------|----------|--------|
+| EC-BAG-001 | S1 | P7 | Add second item while bag has one | Both lines in Shopping Bag; badge ≥2 |
+| EC-BAG-002 | S2 | P7 | Checkout with 2+ items | All lines listed; one order success |
+| EC-BAG-003 | S1 | P8 | Stylist in Profile drawer / See picks on Home | **Forbidden** |
 
 ## 5. Price drop (no send)
 

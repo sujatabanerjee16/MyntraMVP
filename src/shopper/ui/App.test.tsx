@@ -571,14 +571,6 @@ describe("wishlist mvp1", () => {
     expect(screen.queryByText("Your size is back! 📦")).toBeNull();
   });
 
-  it("opens stylist picks with a why-recommended line", async () => {
-    const user = userEvent.setup();
-    render(<ShopperApp runtime={createShopperRuntime()} />);
-    await user.click(screen.getByRole("button", { name: "See picks" }));
-    expect(screen.getByRole("heading", { name: "Styled for you" })).toBeTruthy();
-    expect(screen.getAllByText(/pairs with your recent/i).length).toBeGreaterThan(0);
-  });
-
   it("shows past orders from the profile menu", async () => {
     const user = userEvent.setup();
     render(<ShopperApp runtime={createShopperRuntime()} />);

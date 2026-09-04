@@ -11,6 +11,9 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5174,
     strictPort: true,
+    watch: {
+      ignored: ["**/Myntra Pics/**", "**/scripts/mvp-phones/**", "**/*.tmp", "**/~$*"],
+    },
   },
   build: {
     rollupOptions: {

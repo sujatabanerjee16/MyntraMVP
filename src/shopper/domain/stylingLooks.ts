@@ -25,79 +25,101 @@ const WEARERS: Array<Pick<StyleShot, "id" | "wearer" | "city" | "occasion">> = [
 
 const CROPS: Array<StyleShot["crop"]> = ["top", "close", "side"];
 
-/** Same garment as the PDP — not a different dress or saree. */
+/** Same garment as the PDP — not a different dress or saree. Prefer dedicated UGC files. */
 const PRODUCT_CUSTOMERS: Record<string, string[]> = {
   "prod-libas": ["/shopper/libas-ugc-1.png", "/shopper/libas-ugc-2.png", "/shopper/libas-ugc-3.png"],
+  "prod-kids-shorts": ["/shopper/pics/kids-tropical-set.jpg", "/shopper/pics/kids-plaid-shirt.jpg", "/shopper/kids-shorts.jpg"],
+  "prod-kids-hoodie": ["/shopper/kids-hoodie.jpg", "/shopper/pics/kids-infant-set.jpg", "/shopper/pics/kids-baby-socks.jpg"],
+  "prod-pic-plaid-shirt": ["/shopper/pics/kids-plaid-shirt.jpg", "/shopper/pics/kids-waistcoat.jpg"],
+  "prod-pic-infant-set": ["/shopper/pics/kids-infant-set.jpg", "/shopper/kids-hoodie.jpg"],
+  "prod-pic-waistcoat": ["/shopper/pics/kids-waistcoat.jpg", "/shopper/pics/kids-plaid-shirt.jpg"],
+  "prod-pic-booties": ["/shopper/pics/kids-floral-booties.jpg", "/shopper/pics/kids-baby-socks.jpg"],
+  "prod-pic-baby-socks": ["/shopper/pics/kids-baby-socks.jpg", "/shopper/pics/kids-floral-booties.jpg"],
+  "prod-occasion": ["/shopper/libas-ugc-2.png", "/shopper/libas-ugc-3.png", "/shopper/pics/women-olive-maxi.jpg"],
+  "prod-occasion-2": ["/shopper/libas-ugc-1.png", "/shopper/women-floral.jpg", "/shopper/libas-ugc-2.png"],
+  "prod-dress-cmp-1": ["/shopper/libas-ugc-3.png", "/shopper/libas-ugc-1.png", "/shopper/women-top.jpg"],
+  "prod-dress-cmp-2": ["/shopper/women-floral.jpg", "/shopper/libas-ugc-2.png", "/shopper/pics/women-olive-maxi.jpg"],
+  "prod-kurta-cmp-1": ["/shopper/pics/women-blue-kurta.jpg", "/shopper/pics/women-black-kurta.jpg"],
+  "prod-kurta-cmp-3": ["/shopper/pics/women-pink-anarkali.jpg", "/shopper/pics/women-blue-kurta.jpg"],
+  "prod-biba": ["/shopper/pics/women-pink-anarkali.jpg", "/shopper/pics/women-black-kurta.jpg"],
+  "prod-pic-mustard-saree": ["/shopper/pics/women-mustard-saree.jpg", "/shopper/pics/women-navy-saree.jpg"],
+  "prod-pic-emerald-saree": ["/shopper/pics/women-emerald-saree.jpg", "/shopper/women-saree.jpg"],
+  "prod-pic-olive-maxi": ["/shopper/pics/women-olive-maxi.jpg", "/shopper/libas-ugc-2.png"],
+  "prod-linen": ["/shopper/pics/men-white-shirt.jpg", "/shopper/pics/women-polka-shirt.jpg"],
+  "prod-jeans": ["/shopper/pics/men-light-jeans.jpg", "/shopper/genz-skirt.jpg"],
 };
 
 const DRESS_REVIEWS: StyleReview[] = [
   { author: "Ananya", city: "Bengaluru", rating: 5, fit: "Looks like the photos", comment: "Quality is good. Soft fabric, and it looks like the photos." },
-  { author: "Riya", city: "Pune", rating: 4, fit: "Looks like the photos", comment: "Stitching is neat. Quality feels better than I expected." },
-  { author: "Priya", city: "Kolkata", rating: 5, fit: "Looks like the photos", comment: "Fabric quality is good. Easy to wear all evening." },
+  { author: "Riya", city: "Pune", rating: 4, fit: "Looks like the photos", comment: "Colour stayed true after a wash — same shade as the listing." },
+  { author: "Priya", city: "Kolkata", rating: 5, fit: "Looks like the photos", comment: "Texture feels smooth and light — easy to wear all evening." },
+  { author: "Neha", city: "Delhi", rating: 5, fit: "Looks like the photos", comment: "Fabric quality is good. No see-through in daylight." },
+  { author: "Diya", city: "Chennai", rating: 4, fit: "Looks like the photos", comment: "Print colour matches the PDP. Stitching is neat." },
 ];
 
 const ETHNIC_REVIEWS: StyleReview[] = [
   { author: "Priya", city: "Kolkata", rating: 5, fit: "Looks like the photos", comment: "Quality is good. Heavy fabric, sits well through a ceremony." },
-  { author: "Sara", city: "Jaipur", rating: 4, fit: "Looks like the photos", comment: "Drape quality is good. I took a hook at the waist for a neater fall." },
-  { author: "Leela", city: "Lucknow", rating: 5, fit: "Looks like the photos", comment: "Stitching quality is good. No loose threads." },
+  { author: "Sara", city: "Jaipur", rating: 4, fit: "Looks like the photos", comment: "Colour is rich in daylight — border tone matches the listing." },
+  { author: "Leela", city: "Lucknow", rating: 5, fit: "Looks like the photos", comment: "Texture feels substantial, not plasticky. No loose threads." },
+  { author: "Anu", city: "Nashik", rating: 5, fit: "Looks like the photos", comment: "Weave quality is good. Smooth drape for a wedding evening." },
 ];
 
 const DEFAULT_REVIEWS: StyleReview[] = [
   { author: "Kabir", city: "Mumbai", rating: 4, fit: "Looks like the photos", comment: "Quality is good. Looks like the photos and feels sturdy." },
-  { author: "Dev", city: "Chennai", rating: 5, fit: "Looks like the photos", comment: "Fabric quality is good. Comfortable all day." },
-  { author: "Arjun", city: "Pune", rating: 4, fit: "Looks like the photos", comment: "Finish is clean. Quality feels worth keeping." },
+  { author: "Dev", city: "Chennai", rating: 5, fit: "Looks like the photos", comment: "Colour is even — no weird dye patches." },
+  { author: "Arjun", city: "Pune", rating: 4, fit: "Looks like the photos", comment: "Texture feels clean and finished. Worth keeping." },
 ];
 
 const PRODUCT_REVIEWS: Record<string, StyleReview[]> = {
   "prod-occasion": [
     { author: "Meera", city: "Bengaluru", rating: 5, fit: "Looks like the photos", comment: "Quality is good. Cotton-blend, not see-through, and the flare matches the studio shot." },
-    { author: "Anika", city: "Hyderabad", rating: 4, fit: "Looks like the photos", comment: "Stitching is neat. Gathered waist sits well — quality feels worth the price." },
-    { author: "Divya", city: "Pune", rating: 5, fit: "Looks like the photos", comment: "Fabric quality is good. Airy, no loose threads after a wash." },
+    { author: "Anika", city: "Hyderabad", rating: 4, fit: "Looks like the photos", comment: "Colour is soft ivory in daylight — same tone as the listing." },
+    { author: "Divya", city: "Pune", rating: 5, fit: "Looks like the photos", comment: "Texture feels airy with a light hand — no stiffness after a wash." },
   ],
   "prod-occasion-2": [
     { author: "Riya", city: "Pune", rating: 4, fit: "Looks like the photos", comment: "Quality is good. Crepe, not shiny polyester, and the pleats hold." },
-    { author: "Tara", city: "Mumbai", rating: 5, fit: "Looks like the photos", comment: "Finish is clean. Sits close like the photo — no stiffness at the hip." },
-    { author: "Neha", city: "Delhi", rating: 5, fit: "Looks like the photos", comment: "Colour quality is good. Same shade as the listing after daylight." },
+    { author: "Tara", city: "Mumbai", rating: 5, fit: "Looks like the photos", comment: "Colour depth is rich — same shade under shop lights and sun." },
+    { author: "Neha", city: "Delhi", rating: 5, fit: "Looks like the photos", comment: "Texture feels smooth at the hip — no scratchy lining." },
   ],
   "prod-dress-cmp-1": [
     { author: "Sana", city: "Delhi", rating: 4, fit: "Looks like the photos", comment: "Quality is good. Light cotton, eyelet tiers look like the photos." },
-    { author: "Diya", city: "Chennai", rating: 4, fit: "Looks like the photos", comment: "Stitching on the ruffles is tidy. Fabric feels better than the price." },
-    { author: "Ira", city: "Mumbai", rating: 5, fit: "Looks like the photos", comment: "Quality is good — no see-through on the white mini." },
+    { author: "Diya", city: "Chennai", rating: 4, fit: "Looks like the photos", comment: "White colour stays clean — not yellowing after one wash." },
+    { author: "Ira", city: "Mumbai", rating: 5, fit: "Looks like the photos", comment: "Texture is soft cotton, not stiff organza. Feels breathable." },
   ],
   "prod-libas": [
     { author: "Ananya", city: "Bengaluru", rating: 5, fit: "Looks like the photos", comment: "Quality is good. Soft viscose, wrap holds if you double-knot it." },
-    { author: "Priya", city: "Kolkata", rating: 4, fit: "Looks like the photos", comment: "Print quality is good. Same floral as the photos, not clingy." },
-    { author: "Ritika", city: "Pune", rating: 5, fit: "Looks like the photos", comment: "Hem and lining are clean. Quality feels like a keep." },
+    { author: "Priya", city: "Kolkata", rating: 4, fit: "Looks like the photos", comment: "Print colour matches the photos — florals are clear, not muddy." },
+    { author: "Ritika", city: "Pune", rating: 5, fit: "Looks like the photos", comment: "Texture drapes softly. Hem and lining feel clean." },
   ],
   "prod-kurta-cmp-1": [
     { author: "Nisha", city: "Jaipur", rating: 5, fit: "Looks like the photos", comment: "Quality is good. Sky-blue cotton, print is clear, cool for daytime." },
-    { author: "Aditi", city: "Lucknow", rating: 4, fit: "Looks like the photos", comment: "Fabric quality is good. Mid-calf like the photo, no shrinkage after wash." },
-    { author: "Smita", city: "Indore", rating: 5, fit: "Looks like the photos", comment: "Stitching at the mandarin collar is neat." },
+    { author: "Aditi", city: "Lucknow", rating: 4, fit: "Looks like the photos", comment: "Colour stayed bright after wash — no fade on the blue." },
+    { author: "Smita", city: "Indore", rating: 5, fit: "Looks like the photos", comment: "Texture feels soft cotton at the collar — neat stitching." },
   ],
   "prod-kurta-cmp-3": [
     { author: "Kavya", city: "Pune", rating: 4, fit: "Looks like the photos", comment: "Quality is good. Everyday cotton, gold print matches the PDP." },
-    { author: "Isha", city: "Ahmedabad", rating: 5, fit: "Looks like the photos", comment: "Length is honest. Fabric quality is good with jeans." },
-    { author: "Rani", city: "Surat", rating: 4, fit: "Looks like the photos", comment: "No loose threads. Quality feels solid for the price." },
+    { author: "Isha", city: "Ahmedabad", rating: 5, fit: "Looks like the photos", comment: "Colour of the gold print is honest — not dull in person." },
+    { author: "Rani", city: "Surat", rating: 4, fit: "Looks like the photos", comment: "Texture feels solid for the price — no loose threads." },
   ],
   "prod-pic-mustard-saree": [
     { author: "Rhea", city: "Nagpur", rating: 5, fit: "Looks like the photos", comment: "Quality is good. Silk-blend, not plasticky, border matches the listing." },
-    { author: "Pooja", city: "Indore", rating: 4, fit: "Looks like the photos", comment: "Zari quality is good. Pallu is heavier, as a festive saree should be." },
-    { author: "Anu", city: "Nashik", rating: 5, fit: "Looks like the photos", comment: "Weave feels rich. Quality is good for a wedding evening." },
+    { author: "Pooja", city: "Indore", rating: 4, fit: "Looks like the photos", comment: "Mustard colour is warm and true — same as the photo." },
+    { author: "Anu", city: "Nashik", rating: 5, fit: "Looks like the photos", comment: "Texture feels rich silk-blend — good weight for evening." },
   ],
   "prod-pic-emerald-saree": [
     { author: "Sara", city: "Jaipur", rating: 5, fit: "Looks like the photos", comment: "Quality is good. Emerald silk, gold foil does not rub off." },
-    { author: "Leela", city: "Kolkata", rating: 4, fit: "Looks like the photos", comment: "Border quality is good. Dense zari, needs a good petticoat." },
-    { author: "Mira", city: "Bengaluru", rating: 5, fit: "Looks like the photos", comment: "Pallu colour is rich. Quality feels like the photos." },
+    { author: "Leela", city: "Kolkata", rating: 4, fit: "Looks like the photos", comment: "Colour is deep emerald — border tone matches the listing." },
+    { author: "Mira", city: "Bengaluru", rating: 5, fit: "Looks like the photos", comment: "Pallu texture feels dense and smooth — not scratchy." },
   ],
   "prod-pic-olive-maxi": [
     { author: "Anu", city: "Bengaluru", rating: 4, fit: "Looks like the photos", comment: "Quality is good. Olive satin sheen is real, not cheap shine." },
-    { author: "Maya", city: "Goa", rating: 5, fit: "Looks like the photos", comment: "Stitching at the ruched neck is clean. Shawl was in the parcel." },
-    { author: "Kiara", city: "Mumbai", rating: 5, fit: "Looks like the photos", comment: "Fabric quality is good. Straps feel secure." },
+    { author: "Maya", city: "Goa", rating: 5, fit: "Looks like the photos", comment: "Olive colour matches the PDP under daylight." },
+    { author: "Kiara", city: "Mumbai", rating: 5, fit: "Looks like the photos", comment: "Texture feels smooth satin — straps feel secure." },
   ],
   "prod-biba": [
     { author: "Priya", city: "Kolkata", rating: 5, fit: "Looks like the photos", comment: "Quality is good. Heavier festive fabric, same flare as the photo." },
-    { author: "Sara", city: "Jaipur", rating: 4, fit: "Looks like the photos", comment: "Structured fall. Stitching quality is good through a ceremony." },
-    { author: "Aditi", city: "Delhi", rating: 5, fit: "Looks like the photos", comment: "Dupatta and kurta feel like one set. Quality is good." },
+    { author: "Sara", city: "Jaipur", rating: 4, fit: "Looks like the photos", comment: "Colour holds through a ceremony — no dulling under lights." },
+    { author: "Aditi", city: "Delhi", rating: 5, fit: "Looks like the photos", comment: "Texture feels structured but not stiff — dupatta and kurta match." },
   ],
 };
 

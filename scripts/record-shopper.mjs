@@ -134,10 +134,13 @@ try {
   await setCaption(
     page,
     "Why are you saving this?",
-    "Three reasons at the heart tap: Check quality first, Waiting for My Size, or Compare. Skip is allowed.",
+    "Four reasons at the heart tap: Check quality first, Check the fit, Compare, or Upcoming Occasion. Skip is allowed.",
   );
-  mark("Why are you saving this?", "Three reasons at the heart tap: Check quality first, Waiting for My Size, or Compare. Skip is allowed.");
-  await sleep(1400);
+  mark(
+    "Why are you saving this?",
+    "Four reasons at the heart tap: Check quality first, Check the fit, Compare, or Upcoming Occasion. Skip is allowed.",
+  );
+  await sleep(1800);
   await setCaption(page, "Compare", "Choosing Compare — same-type saves sit side by side later.");
   mark("Compare", "Choosing Compare — same-type saves sit side by side later.");
   await clickHuman(page, by("button", { name: /pick the one that fits you/ }));
@@ -149,10 +152,30 @@ try {
   await by("heading", { name: "Wishlist" }).waitFor();
   await sleep(900);
 
-  await setCaption(page, "Wishlist tabs", "All · Compare · Quality & trust · My size · No longer available — filtered by Women.");
-  mark("Wishlist tabs", "All · Compare · Quality & trust · My size · No longer available — filtered by Women.");
+  await setCaption(
+    page,
+    "Wishlist tabs",
+    "All · Compare · Quality & trust · My size · Occasion · No longer available — filtered by Women.",
+  );
+  mark(
+    "Wishlist tabs",
+    "All · Compare · Quality & trust · My size · Occasion · No longer available — filtered by Women.",
+  );
+  await clickHuman(page, by("tab", { name: /Quality & trust/ }));
+  await sleep(1400);
+  await setCaption(page, "Quality & trust", "Fabric, customer stars, N reviews, quality comments, and two real photos.");
+  mark("Quality & trust", "Fabric, customer stars, N reviews, quality comments, and two real photos.");
+  await sleep(1600);
+  await clickHuman(page, by("tab", { name: /My size/ }));
+  await setCaption(page, "My size", "Fit from past buys — a sentence, not a stock watch.");
+  mark("My size", "Fit from past buys — a sentence, not a stock watch.");
+  await sleep(1600);
+  await clickHuman(page, by("tab", { name: /^Occasion/ }));
+  await setCaption(page, "Occasion", "When will you wear it — named occasion, optional date, countdown.");
+  mark("Occasion", "When will you wear it — named occasion, optional date, countdown.");
+  await sleep(1400);
   await clickHuman(page, by("tab", { name: /Compare/ }));
-  await sleep(1100);
+  await sleep(900);
   await clickHuman(page, by("tab", { name: /No longer available/ }));
   await page.getByText("Zari Border Silk Saree").waitFor();
   await sleep(1100);
@@ -192,7 +215,7 @@ try {
   await clickHuman(page, by("button", { name: "Wishlist", exact: true }));
   await by("heading", { name: "Wishlist" }).waitFor();
   await clickHuman(page, by("tab", { name: /Quality & trust/ }));
-  const qualityCard = page.locator("article").filter({ hasText: "Flared Ethnic Maxi" }).first();
+  const qualityCard = page.locator("article.quality-card").filter({ has: by("button", { name: "MOVE TO BAG" }) }).first();
   await qualityCard.waitFor();
   await clickHuman(page, qualityCard.getByRole("button", { name: "MOVE TO BAG" }));
   await by("heading", { name: "Shopping Bag" }).waitFor();

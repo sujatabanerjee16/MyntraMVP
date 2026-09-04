@@ -219,15 +219,15 @@
       }
       .opts {
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: 6px;
       }
       .opt {
         border: 1px solid var(--line);
         background: #fff;
         border-radius: 8px;
-        padding: 7px 8px;
-        font-size: 10px;
+        padding: 6px 7px;
+        font-size: 9px;
         font-weight: 700;
         line-height: 1.25;
         text-align: left;
@@ -365,6 +365,20 @@
       }
       .dot.on { background: var(--pink); }
       .hint { display: none; }
+      .facts {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 4px;
+        margin: 6px 0;
+        font-size: 8px;
+        font-weight: 700;
+      }
+      .facts span { display: block; color: var(--muted); font-size: 7px; text-transform: uppercase; letter-spacing: 0.06em; }
+      .q-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 4px 0; }
+      .q-photos img { width: 100%; height: 36px; object-fit: cover; border-radius: 4px; }
+      .quote { font-size: 9px; font-weight: 600; color: #5a5d6b; margin: 4px 0 0; }
+      .verdict { margin: 6px 0 2px; font-size: 11px; font-weight: 800; }
+      .verdict.no { color: #b42318; }
       .tab-row {
         display: flex;
         flex-wrap: wrap;
@@ -495,8 +509,9 @@
       function optsFor(onId) {
         const rows = [
           ["quality", "🔎", "Check quality first"],
-          ["size", "📦", "Waiting for My Size"],
+          ["size", "📦", "Check the fit"],
           ["compare", "🆚", "Compare"],
+          ["occasion", "🎉", "Upcoming Occasion"],
         ];
         return `<div class="opts">${rows
           .map(
@@ -526,12 +541,12 @@
 
       const slides = [
         {
-          t: 4000,
-          play: "The split is the heart tap — quality, size, or compare.",
+          t: 4200,
+          play: "The split is the heart tap — quality, fit, compare, or occasion.",
           html: `<div class="full">
             <div class="full-copy">
               <h2>Myntra files the save. This MVP asks why you saved.</h2>
-              <p>Tap wishlist → Check quality first, Waiting for My Size, or Compare. Skip is allowed. Same-type saves sit in Compare — categories never mix.</p>
+              <p>Heart tap → Check quality first, Check the fit, Compare, or Upcoming Occasion. Skip is allowed. Those reasons become tabs that help her decide.</p>
             </div>
             <img class="full-photo" src="/shopper/women-saree.jpg" alt="" />
           </div>`,
@@ -564,7 +579,7 @@
         },
         {
           t: 5500,
-          play: "Three options. No price drop. No occasion chip. No bookmark chip.",
+          play: "Four reasons. No price-drop chip. No bookmark. No how-it-looks."
           html: `<div class="versus">
             <div class="col now">
               <p class="tag">Myntra now</p>
@@ -580,7 +595,7 @@
             <div class="col mvp">
               <p class="tag">This MVP</p>
               <h2>Reason at save</h2>
-              <p>🔎 Check quality first · 📦 Waiting for My Size · 🆚 Compare · Skip. That choice becomes a wishlist tab. No coupon or price-drop as a save reason. Occasion stays a companion question, not a chip.</p>
+              <p>🔎 Check quality first · 📦 Check the fit · 🆚 Compare · 🎉 Upcoming Occasion · Skip. That choice becomes a tab. No coupon or price-drop as a save reason.</p>
               <div class="stage">${device("/shopper/women-saree.jpg", `
                 ${pdp("Banarasi Silk Saree", "₹4,299", true)}
                 <div class="sheet-panel">
@@ -610,7 +625,7 @@
             <div class="col mvp">
               <p class="tag">This MVP</p>
               <h2>Tabs from the save reason</h2>
-              <p>All · Compare · Quality &amp; trust · My size · No longer available. Men · Women · Kids · Beauty · GenZ switch the list. Categories never mix.</p>
+              <p>All · Compare · Quality &amp; trust · My size · Occasion · No longer available. Men · Women · Kids · Beauty · GenZ switch the list. Categories never mix.</p>
               <div class="stage">${device("/shopper/women-saree.jpg", `
                 <div class="pdp-body"><div class="brand">Wishlist</div><div class="pdp-title">Women · tabbed by why you saved</div></div>
                 <div class="cat-bar"><span>MEN</span><span class="on">WOMEN</span><span>KIDS</span><span>BEAUTY</span><span>GENZ</span></div>
@@ -619,6 +634,7 @@
                   <div class="tab-pill">Compare</div>
                   <div class="tab-pill on">Quality &amp; trust</div>
                   <div class="tab-pill">My size</div>
+                  <div class="tab-pill">Occasion</div>
                   <div class="tab-pill">No longer available</div>
                 </div>
                 <div class="list-row"><img src="/shopper/studio-dress.png" alt="" /><div>Flared Ethnic Maxi<br/><span class="muted">🔎 Quality &amp; trust · this tab</span></div></div>
@@ -629,7 +645,7 @@
         },
         {
           t: 5500,
-          play: "Check quality first — reviews, fabric, photos. No date picker.",
+          play: "Quality & trust: fabric, stars, N reviews, quotes, two real photos.",
           html: `<div class="versus">
             <div class="col now">
               <p class="tag">Myntra now</p>
@@ -642,15 +658,84 @@
             </div>
             <div class="col mvp">
               <p class="tag">This MVP</p>
-              <h2>Quality &amp; trust at the tap</h2>
-              <p>🔎 Check quality first — reviews, fabric, whether it looks like the photos. No date picker. Occasion stays a companion question, not a save-reason chip.</p>
+              <h2>Quality &amp; trust answers the doubt</h2>
+              <p>🔎 Check quality first. The tab shows fabric, customer stars, N reviews, comments that say quality is good, and two real photos. No fake x/10. No Compare link.</p>
+              <div class="stage">${device("/shopper/studio-dress.png", `
+                <div class="pdp-body">
+                  <div class="brand">Quality &amp; trust</div>
+                  <div class="pdp-title">Flared Ethnic Maxi</div>
+                  <div class="price">₹2,799</div>
+                  <div class="facts">
+                    <div><span>Fabric</span>Cotton-blend</div>
+                    <div><span>Rating</span>★★★★ 4.2</div>
+                    <div><span>Reviews</span>18 reviews</div>
+                  </div>
+                  <div class="q-photos">
+                    <img src="/shopper/studio-dress.png" alt="" />
+                    <img src="/shopper/women-floral.jpg" alt="" />
+                  </div>
+                  <p class="quote">“Fall is neat — looks like the photos.”</p>
+                  <button class="save-date" type="button">MOVE TO BAG</button>
+                </div>
+              `)}</div>
+            </div>
+          </div>`,
+        },
+        {
+          t: 6000,
+          play: "My size: will it fit, from past buys — not a stock watch.",
+          html: `<div class="versus">
+            <div class="col now">
+              <p class="tag">Myntra now</p>
+              <h2>Size is a chart on the PDP</h2>
+              <p>You open the product for a chart. Nothing uses what you already bought. “My size” in a folder is still just a pile.</p>
+              <div class="stage">${device("/shopper/biba-product.png", pdp("Anarkali Kurta", "₹2,499", true, `<div class="silent">Saved size S · no fit call</div>`))}</div>
+            </div>
+            <div class="col mvp">
+              <p class="tag">This MVP</p>
+              <h2>Fit from past buys</h2>
+              <p>📦 Check the fit. Saved S vs usual M in kurtas → a sentence, not 87%. Size chart stays on apparel. Sarees and accessories skip the chart.</p>
+              <div class="stage">${device("/shopper/biba-product.png", `
+                <div class="pdp-body">
+                  <div class="brand">My size</div>
+                  <div class="pdp-title">Biba Anarkali Kurta</div>
+                  <div class="price">₹2,499 · saved S</div>
+                  <p class="verdict no">This may not fit you</p>
+                  <p class="quote">Smaller than you usually buy — your last kurta was M.</p>
+                  <div class="size-link">Size chart</div>
+                  <button class="save-date" type="button">MOVE TO BAG</button>
+                </div>
+              `)}</div>
+            </div>
+          </div>`,
+        },
+        {
+          t: 5500,
+          play: "Occasion: date only after Upcoming Occasion. Skip date is allowed.",
+          html: `<div class="versus">
+            <div class="col now">
+              <p class="tag">Myntra now</p>
+              <h2>A pile named for a day</h2>
+              <p>Friend's Wedding is a folder. Nothing asks when you will wear it, and nothing counts down.</p>
+              <div class="stage">${device("/shopper/women-saree.jpg", `
+                <div class="pdp-body"><div class="brand">Collections</div><div class="pdp-title">Friend's Wedding</div></div>
+                <div class="list-row"><img src="/shopper/studio-dress.png" alt="" /><div>Flared Ethnic Maxi<br/><span class="muted">In the folder · no date</span></div></div>
+              `)}</div>
+            </div>
+            <div class="col mvp">
+              <p class="tag">This MVP</p>
+              <h2>When will you wear it?</h2>
+              <p>🎉 Upcoming Occasion → then a date. Save date or Skip date. The Occasion tab shows the name and countdown — not a push inbox.</p>
               <div class="stage">${device("/shopper/studio-dress.png", `
                 ${pdp("Flared Ethnic Maxi", "₹2,799", true)}
                 <div class="sheet-panel rise">
                   <div class="handle"></div>
-                  <h3>Saving this for…?</h3>
-                  ${optsFor("quality")}
-                  <button class="skip" type="button">Skip</button>
+                  <h3>When is the occasion?</h3>
+                  <div class="date-box">
+                    <div class="date-pill">15 Sep 2026</div>
+                    <button class="save-date" type="button">Save date</button>
+                    <button class="skip" type="button">Skip date</button>
+                  </div>
                 </div>
               `)}</div>
             </div>
@@ -698,41 +783,13 @@
             <div class="col mvp">
               <p class="tag">This MVP</p>
               <h2>Won't be restocked</h2>
-              <p>Lives on No longer available — in-app, never a push. See Similar Items or Remove. Watching size is the exact saved size, not a generic restock.</p>
+              <p>Lives on No longer available — in-app, never a push. See Similar Items or Remove. No notification inbox.</p>
               <div class="stage">${device("/shopper/women-kurta.jpg", `
                 <div class="pdp-body">
                   <div class="brand">⚠️ This item won't be restocked</div>
                   <div class="pdp-title">Anouk Zari Border Silk Saree</div>
                   <p class="muted" style="margin:4px 0 8px">No longer sold</p>
                   <div class="pdp-row"><span class="opt on" style="flex:1;text-align:center">See Similar Items</span><span class="opt" style="flex:1;text-align:center">Remove</span></div>
-                </div>
-              `)}</div>
-            </div>
-          </div>`,
-        },
-        {
-          t: 5000,
-          play: "Size chart on apparel. Sarees and accessories skip it.",
-          html: `<div class="versus">
-            <div class="col now">
-              <p class="tag">Myntra now</p>
-              <h2>Chart is on the PDP</h2>
-              <p>You open the product for a size chart. Saree is often OS. Bags and beauty have no apparel chart — but the list doesn't say so up front.</p>
-              <div class="stage">${device("/shopper/women-saree.jpg", pdp("Banarasi Silk Saree", "₹4,299", true, `<div class="silent">Size OS · no apparel chart</div>`))}</div>
-            </div>
-            <div class="col mvp">
-              <p class="tag">This MVP</p>
-              <h2>Chart + watch my size</h2>
-              <p>Size chart on apparel. Waiting for My Size watches the exact size you saved. Saree, jewellery, bags, and beauty skip the chart.</p>
-              <div class="stage">${device("/shopper/women-floral.jpg", `
-                ${pdp("Floral Summer Dress", "₹1,899", false, `<div class="size-link">Size chart</div>`)}
-                <div class="pdp-body" style="padding-top:0">
-                  <table class="mini-table">
-                    <tr><th>Size</th><th>Bust</th><th>Waist</th><th>Hip</th></tr>
-                    <tr><td>S</td><td>34</td><td>26</td><td>36</td></tr>
-                    <tr><td>M</td><td>36</td><td>28</td><td>38</td></tr>
-                    <tr><td>L</td><td>38</td><td>30</td><td>40</td></tr>
-                  </table>
                 </div>
               `)}</div>
             </div>
@@ -756,7 +813,7 @@
               <h2>Recs, then checkout</h2>
               <p>Recs sit beside the bag item and stay in category — jeans with a shirt, not earrings. Place order opens address + UPI or COD, then Pay.</p>
               <div class="stage">${device("/shopper/linen-product.jpg", `
-                <div class="pdp-body"><div class="brand">Checkout</div><div class="pdp-title">Sujata Banerjee</div></div>
+                <div class="pdp-body"><div class="brand">Checkout</div><div class="pdp-title">Sujata · Bengaluru</div></div>
                 <div class="silent" style="margin:8px 8px 0">42, Koramangala 5th Block, Bengaluru</div>
                 <div class="rec-box"><b>Recommended for this purchase</b>511 Slim Jeans · stays on this page</div>
                 <div class="opt on" style="margin:8px">UPI (Google Pay, PhonePe)</div>
@@ -770,8 +827,8 @@
           play: "Myntra files the pile. This MVP files the reason — then helps you pick and pay.",
           html: `<div class="full end">
             <div class="full-copy">
-              <h2>Heart tap captures intent. Compare and checkout follow that intent.</h2>
-              <p>Quality, size, or compare — then tabs. Same-type compare with ratings and Buy this. Size chart on apparel. Dead SKUs stay in-app, never a push.</p>
+              <h2>Heart tap captures intent. The tabs help her decide, then pay.</h2>
+              <p>Quality, fit, compare, or occasion — then those tabs. Same-type compare with ratings and Buy this. Dead SKUs stay in-app, never a push. No inbox.</p>
             </div>
             <img class="full-photo" src="/shopper/studio-blazer.jpg" alt="" />
           </div>`,

@@ -263,24 +263,34 @@ export function createShopperApi(store: ShopperStore, now: () => Date) {
       return { ok: true, status: 200, body: row };
     },
 
-    addToBag(itemId: string): ApiResult<{ bag_item_id: string }> {
+    addToBag(itemId: string): ApiResult<{ bag_item_id: string; bag_count: number }> {
       const item = store.items.find((row) => row.id === itemId);
       if (!item) return { ok: false, status: 404, error: "Not found" };
-      store.bagItemId = itemId;
-      store.addToCarts += 1;
-      return { ok: true, status: 200, body: { bag_item_id: itemId } };
+      if (!store.bagItemIds.includes(itemId)) {
+        store.bagItemIds.push(itemId);
+        store.addToCarts += 1;
+      }
+      return { ok: true, status: 200, body: { bag_item_id: itemId, bag_count: store.bagItemIds.length } };
     },
 
-    getBag(): ApiResult<{ item: WishlistView | null; addons: CatalogProduct[] }> {
-      const item = store.items.find((row) => row.id === store.bagItemId) ?? null;
+    getBag(): ApiResult<{ items: WishlistView[]; item: WishlistView | null; addons: CatalogProduct[] }> {
+      const items = store.bagItemIds
+        .map((id) => store.items.find((row) => row.id === id))
+        .filter((row): row is NonNullable<typeof row> => Boolean(row))
+        .map((row) => view(row));
       const addons = store.bagAddonSkus
         .map((sku) => allCatalog().find((row) => row.sku === sku))
         .filter((row): row is CatalogProduct => Boolean(row));
-      return { ok: true, status: 200, body: { item: item ? view(item) : null, addons } };
+      return {
+        ok: true,
+        status: 200,
+        body: { items, item: items[items.length - 1] ?? null, addons },
+      };
     },
 
     getOrderRecs(): ApiResult<OrderRecOffer> {
-      const item = store.items.find((row) => row.id === store.bagItemId);
+      const lastId = store.bagItemIds[store.bagItemIds.length - 1];
+      const item = store.items.find((row) => row.id === lastId);
       if (!item) return { ok: false, status: 400, error: "Empty bag" };
       return {
         ok: true,
@@ -289,8 +299,8 @@ export function createShopperApi(store: ShopperStore, now: () => Date) {
       };
     },
 
-    addOrderAddon(sku: string): ApiResult<{ addons: CatalogProduct[] }> {
-      if (!store.bagItemId) return { ok: false, status: 400, error: "Empty bag" };
+    addOrderAddon(sku: string): ApiResult<{ items: WishlistView[]; item: WishlistView | null; addons: CatalogProduct[] }> {
+      if (!store.bagItemIds.length) return { ok: false, status: 400, error: "Empty bag" };
       if (!allCatalog().some((row) => row.sku === sku)) {
         return { ok: false, status: 404, error: "Not found" };
       }
@@ -299,24 +309,26 @@ export function createShopperApi(store: ShopperStore, now: () => Date) {
     },
 
     checkoutSuccess(): ApiResult<{ order_id: string; extras: string[] }> {
-      if (!store.bagItemId) return { ok: false, status: 400, error: "Empty bag" };
-      const item = store.items.find((row) => row.id === store.bagItemId);
-      if (item) item.status = "purchased";
+      if (!store.bagItemIds.length) return { ok: false, status: 400, error: "Empty bag" };
+      const bagRows = store.bagItemIds
+        .map((id) => store.items.find((row) => row.id === id))
+        .filter((row): row is NonNullable<typeof row> => Boolean(row));
+      for (const item of bagRows) item.status = "purchased";
       const extras = store.bagAddonSkus
         .map((sku) => allCatalog().find((row) => row.sku === sku))
         .filter((row): row is CatalogProduct => Boolean(row));
       const orderId = `MYN${now().getTime()}`;
-      if (item) {
+      if (bagRows.length) {
         store.orders.unshift({
           id: orderId,
           placedAt: iso(),
           items: [
-            {
+            ...bagRows.map((item) => ({
               brand: item.catalog.brand,
               title: item.catalog.title,
               price: item.currentPrice,
               image_url: item.catalog.image_url,
-            },
+            })),
             ...extras.map((row) => ({
               brand: row.brand,
               title: row.title,
@@ -326,7 +338,7 @@ export function createShopperApi(store: ShopperStore, now: () => Date) {
           ],
         });
       }
-      store.bagItemId = null;
+      store.bagItemIds = [];
       store.bagAddonSkus = [];
       return { ok: true, status: 200, body: { order_id: orderId, extras: extras.map((row) => row.title) } };
     },

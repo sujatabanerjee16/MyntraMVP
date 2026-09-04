@@ -1,10 +1,10 @@
 # Myntra Wishlist — Architecture (Comparison MVP)
 
 **Document status:** Living architecture for the shopper product  
-**Source of truth:** [ProblemStatement_Solution_MVP.md](./ProblemStatement_Solution_MVP.md) (PRD v3.0)  
+**Source of truth:** [ProblemStatement_Solution_MVP.md](./ProblemStatement_Solution_MVP.md) (PRD v3.1)  
 **This is not** the discovery-engine dashboard.
 
-**One-liner:** Heart tap names **quality, fit, compare, or occasion**. Those reasons become tabs that help her **decide**. Same-type live rows cluster by **site category + article** (2–5). Price is a fact on the compare card. No shopper inbox. No fake conversion %.
+**One-liner:** Heart tap names **quality, fit, compare, or occasion**. Those reasons become tabs that help her **decide**. Same-type live rows cluster by **site category + article** (2–5). Price is a fact on the compare card. No shopper inbox. No Stylist chrome. Multi-item bag. No fake conversion %.
 
 ---
 
@@ -52,18 +52,19 @@ Companions: F1 four live tags, F-Q Quality cards, F-FIT fit-from-past-buys, F4 O
 
 ### 1.4 Principles
 
-1. **Compare is the P0 of this slice.** Folders, stylist-among-saves, share-link are out.
+1. **Compare is the P0 of this slice.** Folders, stylist-among-saves, share-link, and **customer-facing Stylist** (drawer / See picks) are out.
 2. **Category + article**, not save-reason, defines a cluster.
 3. **Dead SKUs never compare.** They stay on F5.
-4. **Photos are this SKU.** Fallback is the product image, not a different garment.
+4. **Photos are this SKU.** Fallback is the product image, not a different garment. Kids never get women UGC.
 5. **Price is a fact** on the card. It is not a context tag and not a push in this slice.
-6. **Tag is optional.** Skip → `tag: null`.
+6. **Tag is optional.** Skip → `tag: null`. Opening the sheet must not auto-select a reason.
 7. **Shopper UI has no inbox and no alert ⚙️.** F5 still works in-app.
 8. **F5 is never a push.**
 9. **My size is a fit sentence**, not a stock watch. Exact-size restock (if the worker runs) is API-only.
 10. **Occasion date is optional.** Batch F4 by date only when a date is set.
 11. **No extra PII.**
 12. **No invented conversion %, Groq fit score, or 87%.**
+13. **Bag holds many items** (`bagItemIds[]`). Checkout lists all lines.
 
 ---
 
@@ -85,12 +86,14 @@ Companions: F1 four live tags, F-Q Quality cards, F-FIT fit-from-past-buys, F4 O
 - Price-drop **tag** and price-drop **push** (proto `runPriceCheck` returns `sent: 0`)
 - Bookmark / How it looks on me as live chips
 - Shopper notification inbox or wishlist ⚙️
-- Stylist-among-saves, share-link, folders, fit **score** (87%, 8.4/10)
+- Customer-facing Stylist (drawer, “Styled for you”, stylist screen) and stylist-among-saves
+- Share-link, folders, fit **score** (87%, 8.4/10)
 - Mixing site categories
 - Discovery dashboard
 - Fake wishlist→cart from seed checkout
 - Push for dead items
 - Groq / LLM fit cards
+- Single-slot bag that replaces the previous item on every add
 
 ---
 
@@ -98,7 +101,7 @@ Companions: F1 four live tags, F-Q Quality cards, F-FIT fit-from-past-buys, F4 O
 
 | Actor | Job |
 |-------|-----|
-| Deliberate planner | Open Compare; read Quality / My size / Occasion tabs; bag one; clean dead rows |
+| Deliberate planner | Open Compare; read Quality / My size / Occasion tabs; bag one or more; clean dead rows |
 | Impulsive saver | Same tabs; no inbox blast |
 | Growth | CMP-OPEN / CMP-BAG, quality/fit tab opens, tag adoption — real events only |
 
@@ -107,8 +110,8 @@ Companions: F1 four live tags, F-Q Quality cards, F-FIT fit-from-past-buys, F4 O
 ## 4. System context
 
 ```
-Shopper app (6 wishlist tabs, compare page, tag sheet, bag)
-        │     no inbox · no ⚙️
+Shopper app (6 wishlist tabs, compare page, tag sheet, multi-item bag)
+        │     no inbox · no ⚙️ · no Stylist chrome
         ▼
 Wishlist service  (item + tag + occasionDate)
         │
@@ -195,7 +198,7 @@ Registered **only at save** if `selectedSize` is OOS. Later OOS without a watch 
 2. Compare tab + All-tab banners.
 3. Compare page: `compareCards`; optional `inStock=1`.
 4. Client-only **Not this** (session hide). If fewer than 2 cards, empty state.
-5. Bag uses existing `addToBag`.
+5. Bag uses `addToBag` → append to `bagItemIds` (dedupe); badge = items + addons.
 
 **Code:** `src/shopper/domain/compare.ts`. **HTTP:** `GET /wishlist/compare`, `GET /wishlist/compare/:key`.
 
@@ -203,11 +206,11 @@ Article inference: `inferArticleType` plus title overrides (hoodie / jacket / bl
 
 ### 6.2 F1 — Context tag
 
-Four live choices (`quality_trust` · `size_wait` · `compare` · `occasion`); skip → null; date picker only after Occasion (Skip date allowed).
+Four live choices (`quality_trust` · `size_wait` · `compare` · `occasion`); skip → null; date picker only after Occasion (Skip date allowed). Sheet open must not auto-select a tag from a leftover pointer event.
 
 ### 6.3 F-Q — Quality & trust
 
-`qualityBrief`: fabric, stars, N reviews, quality quotes, two real photos. No Compare CTA. No fake `x/10`.
+`qualityBrief`: fabric, stars, **150+** display reviews, quality/colour/texture quotes (`pickRelevantQuotes`), two real customer photos. Kids use kids photo pool only. No Compare CTA. No fake `x/10`.
 
 ### 6.4 F-FIT — My size
 
@@ -270,11 +273,13 @@ Proto may update `currentPrice`. **Do not send** a price-drop inbox row.
 | CMP3 | No cross-category mix |
 | CMP4 | Photos / reviews are this SKU; no TTS; no fake quality score |
 | CMP5 | Price is display-only; cheapest among **visible** cards |
-| TAG1 | Skip → `tag: null`, no re-prompt |
+| TAG1 | Skip → `tag: null`, no re-prompt; sheet never auto-picks a reason |
 | TAG2 | Date picker only if occasion; no price-drop / bookmark / how-it-looks choice |
-| QTY1 | Quality photos are dedicated UGC or type-matched real photos — never a different SKU’s PDP as UGC |
-| QTY2 | No Compare CTA on Quality tab; no fake `x/10` |
+| QTY1 | Quality photos are dedicated UGC or type-matched real photos — never a different SKU’s PDP as UGC; kids ≠ women UGC |
+| QTY2 | No Compare CTA on Quality tab; no fake `x/10`; display review count ≥150 |
+| QTY3 | Quotes prefer quality / colour / texture language |
 | FIT1 | My size is a fit sentence from past buys, not “watching size” / restock |
+| BAG1 | Bag is multi-item (`bagItemIds[]`); second add does not replace the first |
 | STK1 | Watch only if size OOS **at save** |
 | STK2 | Exact size; no re-fire after purchase |
 | OCC1 | Date optional on tab; F4 send requires a date; batch same date |
@@ -294,15 +299,15 @@ Myntra-like **web** chrome at `/`. Not the insight dashboard.
 
 | Surface | This MVP |
 |---------|----------|
-| Home | “From your wishlist” rail |
+| Home | Catalog + “From your wishlist” rail — **no** “Styled for you” / See picks |
 | Wishlist | Tabs: **All · Compare · Quality & trust · My size · Occasion · No longer available**. No ⚙️. No inbox. |
 | Compare page | Price, stars, quality note, Lowest here, Buy this, Not this, bag / PDP |
-| Quality cards | Fabric, stars, N reviews, quotes, 2 photos |
+| Quality cards | Fabric, stars, 150+ reviews, quality/colour/texture quotes, 2 real customer photos |
 | My size cards | Fit verdict + reason from past buys |
 | Occasion cards | Label, countdown, date field |
-| Tag sheet | 2×2 live intents; date only after Occasion |
-| Prefs / inbox | **Not shopper-facing** |
-| Bag | Existing path — not a live conversion KPI |
+| Tag sheet | 2×2 live intents; date only after Occasion; no auto-select |
+| Prefs / inbox / Stylist | **Not shopper-facing** |
+| Bag / Checkout | Multi-item list + total — not a live conversion KPI |
 
 Personas: Sujata (dresses + kurtas), Priya (same), Kabir (shirts).
 
@@ -428,10 +433,10 @@ P0–P6 companions (item model, tags, dead)
 
 ## 17. Definition of done (architecture)
 
-- [ ] F-CMP: clusters, cards (price / stars / note / Lowest here / Buy this / Not this), filter, bag, no mix, dead excluded, no TTS / fake score
-- [ ] F1: four live tags, skip, chip, date only after Occasion
-- [ ] F-Q / F-FIT / Occasion tabs as in PRD
-- [ ] No shopper inbox / ⚙️
+- [ ] F-CMP: clusters, cards (price / stars / note / Lowest here / Buy this / Not this), filter, multi-item bag, no mix, dead excluded, no TTS / fake score
+- [ ] F1: four live tags, skip, chip, date only after Occasion; no auto-select on sheet open
+- [ ] F-Q / F-FIT / Occasion tabs as in PRD v3.1 (150+ reviews, real customer photos, kids pool)
+- [ ] No shopper inbox / ⚙️ / Stylist chrome
 - [ ] No price-drop send; no price-drop / bookmark / how-it-looks save option
 - [ ] No dashboard work in the shopper path
-- [ ] EdgeCases `EC-COMP-*` + `EC-QTY-*` + `EC-FIT-*` + S0 companions green
+- [ ] EdgeCases `EC-COMP-*` + `EC-QTY-*` + `EC-FIT-*` + `EC-BAG-*` + S0 companions green

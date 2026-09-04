@@ -17,8 +17,11 @@ describe("quality brief", () => {
     expect(brief.fabric).toBe("Cotton-blend");
     expect(brief.description).toMatch(/gathered waist/);
     expect(brief.quotes.length).toBe(3);
-    expect(brief.quotes.every((row) => /quality is good|quality feels|fabric quality is good|stitching/i.test(row.comment))).toBe(true);
-    expect(brief.rating).toEqual({ average: 4.5, count: 2 });
+    expect(brief.quotes.some((row) => /quality/i.test(row.comment))).toBe(true);
+    expect(brief.quotes.some((row) => /colo(?:u)?r|shade|print|tone/i.test(row.comment))).toBe(true);
+    expect(brief.quotes.some((row) => /texture|soft|airy|feel|cotton|fabric/i.test(row.comment))).toBe(true);
+    expect(brief.rating.average).toBe(4.5);
+    expect(brief.rating.count).toBeGreaterThanOrEqual(150);
     expect(brief.photos).toHaveLength(2);
     expect(new Set(brief.photos.map((row) => row.image_url)).size).toBe(2);
     expect(JSON.stringify(brief)).not.toMatch(/\d+(\.\d+)?\s*\/\s*10/);
@@ -36,13 +39,17 @@ describe("quality brief", () => {
     expect(fabricFrom("Floral Printed Wrap Midi Dress", "Floral wrap midi in printed viscose.")).toBe("Viscose drape");
   });
 
-  it("does not reuse the same review on two different pieces", () => {
-    const maxi = qualityBrief({ productId: "prod-occasion", catalog: { title: "Flared Ethnic Maxi" } }, "Airy cotton-blend.");
-    const mini = qualityBrief(
-      { productId: "prod-dress-cmp-1", catalog: { title: "Ruffled Off-Shoulder Mini Dress" } },
-      "White off-shoulder mini with a ruffled bust.",
+  it("uses kids customer photos for kids quality cards — never women UGC", () => {
+    const brief = qualityBrief(
+      {
+        productId: "prod-kids-shorts",
+        catalog: { title: "Printed Shorts Set", image_url: "/shopper/pics/kids-tropical-set.jpg" },
+        category: "KIDS",
+      },
+      "Soft cotton for vacation days.",
     );
-    expect(maxi.quotes[0]?.comment).not.toBe(mini.quotes[0]?.comment);
-    expect(maxi.description).not.toBe(mini.description);
+    expect(brief.photos).toHaveLength(2);
+    expect(brief.photos.every((row) => /kids/i.test(row.image_url))).toBe(true);
+    expect(brief.photos.every((row) => !/libas-ugc|women-/i.test(row.image_url))).toBe(true);
   });
 });

@@ -5,7 +5,8 @@
 
 This slice = **help hesitant buyers decide**: Compare (F-CMP) plus **Quality & trust**, **My size** (fit from past buys), and **Occasion**.  
 Live save reasons: `quality_trust` · `size_wait` · `compare` · `occasion` · `null`.  
-Shopper chrome has **no inbox** and **no alert ⚙️**.  
+Shopper chrome has **no inbox**, **no alert ⚙️**, and **no Stylist**.  
+Bag is **multi-item**. Quality shows **150+** reviews and real customer photos (kids pool for kids).  
 Not the discovery dashboard. Not Bookmark / How it looks. Not a price-drop save tag or push. Not a fake fit score.
 
 ---
@@ -50,15 +51,16 @@ Price-drop **push** (old P3 / F2) is **not** implemented as a send. `runPriceChe
 
 ## 2. Cross-cutting rules
 
-1. Skip tag → `null`. No re-prompt. No price-drop / bookmark / how-it-looks on the sheet.
-2. Shopper UI has **no inbox** and **no ⚙️**.
+1. Skip tag → `null`. No re-prompt. No price-drop / bookmark / how-it-looks on the sheet. Sheet open must not auto-select a reason.
+2. Shopper UI has **no inbox**, **no ⚙️**, and **no Stylist** chrome.
 3. F5 is **never** a push. Discontinued rows **never** enter compare.
 4. My size tab: fit from past buys. Not “watching size.”
 5. Occasion: date optional; date picker only after Occasion; Skip date allowed.
 6. Compare: `{SiteCat}:{article}`, min 2, max 5, no cross-category mix.
 7. Compare cards: price, stars, quality note, Lowest here, Buy this, Not this. No colour/design/on-body columns. No TTS / fake x/10.
-8. Quality photos: dedicated UGC or type-matched real photos — never a different SKU’s PDP as UGC.
-9. Do not show live wishlist→cart % from demo checkout.
+8. Quality photos: dedicated UGC or type-matched real photos — never a different SKU’s PDP as UGC; kids never get women UGC. Display review count ≥150; quotes on quality / colour / texture.
+9. Bag: `bagItemIds[]` — second add keeps the first; Bag / Checkout list all lines.
+10. Do not show live wishlist→cart % from demo checkout.
 
 ---
 
@@ -191,7 +193,7 @@ Anouk discontinued on **No longer available**. Bell has no dead-item message. Ro
 
 ### Demo
 
-1. Wishlist → **Quality & trust**: fabric, stars, N reviews, quality quotes, two photos. No Compare link.
+1. Wishlist → **Quality & trust**: fabric, stars, 150+ reviews, quality/colour/texture quotes, two real customer photos. No Compare link. Kids SKUs show kids photos only.
 2. **My size**: Biba S vs usual M → “may not fit” sentence. No “Watching size”.
 3. **Occasion**: named occasion + date field.
 
@@ -202,12 +204,13 @@ Anouk discontinued on **No longer available**. Bell has no dead-item message. Ro
 - Discovery dashboard / Ask AI
 - Bookmark / How it looks as live chips
 - Shopper inbox or wishlist ⚙️
-- Stylist-among-saves, share-link, folders, fit **score**
+- Customer-facing Stylist (drawer / See picks / stylist screen), stylist-among-saves, share-link, folders, fit **score**
 - Price-drop tag or push
 - Push for dead items
 - Live wishlist→cart from seed checkout
 - Mixing site categories to “fill” a cluster
 - Groq / LLM fit cards
+- Single-item bag that replaces on every add
 
 ---
 
@@ -224,8 +227,10 @@ Anouk discontinued on **No longer available**. Bell has no dead-item message. Ro
 | Compare cards: price / stars / note / Lowest here | | | | x | |
 | No TTS / fake score | | | | x | x |
 | Compare → bag | | | | x | |
-| Quality: fabric, stars, quotes, 2 photos; no Compare CTA | | | | | x |
+| Quality: fabric, stars, 150+ reviews, colour/texture quotes, 2 photos; no Compare CTA | | | | | x |
 | My size: fit sentence, not watching size | | | | | x |
+| Multi-item bag | | | | x | |
+| No Stylist chrome | x | | | | x |
 | No shopper inbox / ⚙️ | x | | | | x |
 | No fake conversion | x | | x | x | x |
 
@@ -259,7 +264,7 @@ Anouk discontinued on **No longer available**. Bell has no dead-item message. Ro
 | Sprint | Focus |
 |--------|--------|
 | Done | P0–P7, F2 send disabled, no shopper inbox |
-| This | P8 Quality / fit / Occasion cards + doc alignment |
+| This | P8 Quality / fit / Occasion cards + multi-item bag + Stylist removed + doc v3.1 |
 
 ---
 
@@ -267,11 +272,12 @@ Anouk discontinued on **No longer available**. Bell has no dead-item message. Ro
 
 Matches PRD § Definition of Done:
 
-- [x] F1 four live tags, chip, editable, graceful skip; date only after Occasion; no price-drop / bookmark / how-it-looks
-- [x] F-Q Quality cards; F-FIT fit from past buys; Occasion cards
+- [x] F1 four live tags, chip, editable, graceful skip; date only after Occasion; no price-drop / bookmark / how-it-looks; no auto-select on sheet open
+- [x] F-Q Quality cards (150+ reviews, real customer photos, kids pool); F-FIT fit from past buys; Occasion cards
 - [x] F5 in-app, Similar + Remove, not a push
-- [x] No shopper inbox / ⚙️
+- [x] No shopper inbox / ⚙️ / Stylist chrome
 - [x] F-CMP clusters + cards (price / stars / note / Lowest here / Buy this / Not this) + filter + bag; no mix; dead excluded
-- [ ] EdgeCases S0/S1 green for P7/P8 (`EC-COMP-*`, `EC-QTY-*`, `EC-FIT-*`)
+- [x] Multi-item bag (`bagItemIds[]`)
+- [ ] EdgeCases S0/S1 green for P7/P8 (`EC-COMP-*`, `EC-QTY-*`, `EC-FIT-*`, `EC-BAG-*`)
 - [ ] No invented conversion % in the UI
-- [ ] Five `Doc/*.md` files describe **this** product
+- [ ] Five `Doc/*.md` files describe **this** product (v3.1)

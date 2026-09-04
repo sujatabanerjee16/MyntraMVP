@@ -159,6 +159,19 @@ describe("shopper wishlist api", () => {
     expect(count(runtime.api.getWishlist().body)).toBe(before - 1);
   });
 
+  it("lets the shopper add a second item to the bag", () => {
+    const runtime = createShopperRuntime();
+    expect(runtime.api.addToBag("wish-libas").ok).toBe(true);
+    expect(runtime.api.addToBag("wish-biba").ok).toBe(true);
+    const bag = runtime.api.getBag().body;
+    expect(bag.items).toHaveLength(2);
+    expect(bag.items.map((row) => row.id).sort()).toEqual(["wish-biba", "wish-libas"].sort());
+    const done = runtime.api.checkoutSuccess();
+    expect(done.ok).toBe(true);
+    expect(done.body).toBeTruthy();
+    expect(runtime.api.getBag().body.items).toHaveLength(0);
+  });
+
   it("lists past purchases as orders", () => {
     const runtime = createShopperRuntime();
     const orders = runtime.api.getOrders().body.items;

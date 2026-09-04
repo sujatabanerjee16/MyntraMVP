@@ -1,9 +1,9 @@
 # 📦 PRD: Myntra Wishlist — Comparison MVP
 **Product:** Myntra Wishlist — help the shopper **pick among same-type saves**  
-**Version:** 3.0  
+**Version:** 3.1  
 **Status:** Source of truth for the shopper prototype (`/` → `src/shopper/`)  
 **Platform:** Shopper web prototype (Myntra-like site). Mobile app contracts stay compatible.  
-**Research Base:** 6 user interviews + 2 survey datasets; live prototype learning (quality, fit, compare, occasion, dead items)
+**Research Base:** 6 user interviews + 2 survey datasets; live prototype learning (quality, fit, compare, occasion, dead items, multi-item bag)
 
 ---
 
@@ -96,7 +96,7 @@ Shopper chrome has **no notification inbox** and **no alert-settings ⚙️**. R
 
 | Tag | Sheet label | Tab | What the tab does |
 |---|---|---|---|
-| `quality_trust` | Check quality first | Quality & trust | Fabric, star rating, **N reviews**, comments that say quality is good, **2 real photos**. No Compare link. No fake `x/10`. |
+| `quality_trust` | Check quality first | Quality & trust | Fabric, star rating, **150+ reviews** (display volume), 2–3 quotes on quality / colour / texture, **2 real customer photos** (kids never get women UGC). No Compare link. No fake `x/10`. |
 | `size_wait` | Check the fit | My size | **Will it fit**, from past buys (usual size, returns, runs small/large). **Not** “watching size” / availability. |
 | `compare` | Compare | Compare | Same type, 2–5, side by side |
 | `occasion` | Upcoming Occasion | Occasion | Named occasion + optional date + countdown. Date picker only after this tag. |
@@ -106,6 +106,7 @@ Shopper chrome has **no notification inbox** and **no alert-settings ⚙️**. R
 
 ### ❌ OUT OF SCOPE — this slice
 
+- **Customer-facing Stylist** — no drawer “Stylist”, no home “Styled for you” / “See picks”, no stylist screen. Domain helpers under `stylist.ts` may still power fit / article inference; they are not a shopper product surface.
 - Stylist-among-saves (“which of these would suit me”)
 - Share-link / social wishlist
 - Duplicate-detection banner as a separate product
@@ -162,7 +163,7 @@ Colour, design, and on-body are **not** separate columns. Those jobs live on **Q
 
 - **In stock only** — hide OOS / size-watch rows.
 - **Not this** — hide a card for this visit. If fewer than 2 remain, stop comparing (empty copy).
-- **MOVE TO BAG** — in-stock only; same bag path as the rest of the site.
+- **MOVE TO BAG** — in-stock only; same multi-item bag path as the rest of the site (`bagItemIds[]`; badge = items + addons).
 - Tap image → PDP of **that** item.
 
 #### Acceptance Criteria
@@ -171,7 +172,7 @@ Colour, design, and on-body are **not** separate columns. Those jobs live on **Q
 - [ ] Cluster does not include the discontinued Anouk kurta.
 - [ ] Cards do not show “True to size” or a made-up quality score.
 - [ ] In-stock filter hides watching / OOS rows.
-- [ ] Bag from compare lands in Shopping Bag with that SKU.
+- [ ] Bag from compare lands in Shopping Bag with that SKU; a second add keeps the first.
 - [ ] Women dresses never cluster with Kids frocks.
 
 ---
@@ -203,6 +204,7 @@ Auto-dismiss of the add sheet is **paused** while the date step is open.
 
 - Sheet is non-blocking; Skip is first-class.
 - Date picker **only** after Upcoming Occasion. Skip date is allowed (`occasionDate: null`).
+- Opening the sheet must **not** auto-select a reason from a leftover click / pointer event. Skip and dismiss never invent a tag.
 - Chip on card. Long-press / tap chip → edit.
 - `bookmarking`, `styling_unsure`, and `price_drop` are **not** on the sheet.
 
@@ -230,9 +232,9 @@ occasionDate: string | null   // only asked after occasion
 Not a filter. `QualityCard` uses `qualityBrief`:
 
 - Fabric from catalog / title
-- Star rating + **N reviews** (seed ratings, not an invented `x/10`)
-- 2–3 comments that say **quality is good** (product-specific)
-- **Two photos**: dedicated Libas UGC if ≥2 exist; else catalog + a **type-matched** real photo. Never a cropped PDP of a different SKU pretending to be UGC
+- Star rating + **150+ reviews** via `displayReviewCount` (stable display volume; not an invented `x/10`)
+- 2–3 quotes via `pickRelevantQuotes` — quality / colour / texture (product-specific)
+- **Two photos** labelled **Real customer photo**: dedicated UGC if ≥2 exist; else type-matched pool. **Kids** use kids photo pool only — never women Libas UGC. Never a cropped PDP of a different SKU pretending to be UGC
 - MOVE TO BAG
 - **No Compare link** on this tab
 
@@ -293,7 +295,7 @@ Wishlist
 ├── Hint: same types sit together so you can compare
 ├── Tabs: All | Compare | Quality & trust | My size | Occasion | No longer available
 ├── All: compare banners + groups by live reason + dead nudge
-├── Quality & trust → QualityCard (fabric, stars, N reviews, quotes, 2 photos)
+├── Quality & trust → QualityCard (fabric, stars, 150+ reviews, quality/colour/texture quotes, 2 real customer photos)
 ├── My size → SizeFitCard (fit sentence from past buys)
 ├── Occasion → OccasionCard (label, countdown, date)
 └── Compare tab → cluster list → Compare page (price, stars, quality note, Lowest here, Buy this, Not this)
@@ -331,7 +333,11 @@ Full catalog: [EdgeCases_Wishlist_Reengagement_MVP.md](./EdgeCases_Wishlist_Reen
 | Skip tag | `null`, no re-prompt |
 | Occasion without date | Tab still shows; F4 will not fire |
 | My size | Fit sentence, not “watching size” |
-| Quality photos | This type / dedicated UGC — never a different SKU’s PDP as UGC |
+| Quality photos | This type / dedicated UGC — never a different SKU’s PDP as UGC; kids ≠ women UGC |
+| Quality review count | Display **≥150** (stable hash), not raw sample size |
+| Tag sheet open | No auto-pick from leftover click; Skip never tags |
+| Multi-item bag | Second `addToBag` keeps the first; badge = bag + addons |
+| Stylist chrome | **Absent** (drawer / See picks / stylist screen) |
 | Restock other size | No F3 (API) |
 | Same occasion date, two SKUs | One F4 (API) |
 | Shopper inbox / ⚙️ | **Absent** |
@@ -345,11 +351,12 @@ Full catalog: [EdgeCases_Wishlist_Reengagement_MVP.md](./EdgeCases_Wishlist_Reen
 |---|---|
 | F-CMP | Clusters at 2+, cap 5, price / stars / quality note / Lowest here / Buy this / Not this / bag, no TTS / fake score, no category mix, dead excluded |
 | F1 | Four live tags (quality, fit, compare, occasion); skip; chip; edit; date only after Occasion |
-| F-Q | Quality tab shows fabric, stars, N reviews, quality quotes, 2 real photos; no Compare CTA; no fake `x/10` |
+| F-Q | Quality tab shows fabric, stars, 150+ reviews, quality/colour/texture quotes, 2 real customer photos; kids pool only for kids; no Compare CTA; no fake `x/10` |
 | F-FIT | My size shows a fit sentence from past buys; not stock watch; bucket is `size_wait` only |
 | F4 | Occasion tab + optional date; skip date allowed; API batch ≤7 days if date set |
 | F5 | In-app tab, Similar + Remove, never push, not in compare |
-| Chrome | No shopper inbox; no wishlist ⚙️ |
+| Bag | Multi-item `bagItemIds[]`; Bag / Checkout list all lines + total; not a live conversion KPI |
+| Chrome | No shopper inbox; no wishlist ⚙️; **no Stylist** |
 | Honesty | No invented conversion %, no Groq/LLM fit score, no 87% |
 
 ---
@@ -381,7 +388,8 @@ A filled 15% on this prototype is a **fail**.
 | Tag sheet (2×2) | Live |
 | Dead nudge | Live |
 | Prefs / inbox | **Not shopper-facing** |
-| PDP / Bag | Existing |
+| Stylist | **Removed** |
+| PDP / Bag | Live — multi-item bag + checkout |
 
 **Stack:** Vite `/` → `src/shopper/`. Local often `http://127.0.0.1:5174/` or `5175`. Production: https://myntramvp.vercel.app/. Code: https://github.com/sujatabanerjee16/MyntraMVP. Personas: **Sujata** (default WOMEN), Priya, Kabir (GENZ). Home cats: MEN · WOMEN · KIDS · BEAUTY · GENZ.
 
@@ -391,7 +399,8 @@ A filled 15% on this prototype is a **fail**.
 
 | Version | Notes |
 |---|---|
+| 3.1 | Remove customer Stylist chrome. Multi-item bag. Quality: 150+ reviews, colour/texture quotes, Real customer photo, kids photo pool. Tag sheet no auto-select. |
 | 3.0 | Live reasons: quality, fit, compare, occasion. Decision tabs. Compare cards without colour/design/on-body columns. No shopper inbox / ⚙️. |
 | 2.0 | Comparison MVP (superseded tag set) |
 
-*Comparison MVP v3.0 | Aligns docs with the live shopper prototype. Research still 6 interviews + 2 surveys. Do not put a full last name on the research slide.*
+*Comparison MVP v3.1 | Aligns docs with the live shopper prototype. Research still 6 interviews + 2 surveys. Do not put a full last name on the research slide.*

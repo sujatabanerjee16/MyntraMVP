@@ -3,7 +3,10 @@ import { unwrap, type WishlistView } from "../api";
 import type { JeansLook } from "../domain/jeansLooks";
 import { lookKindLabel, lookKindOf, lookSourceLabel, pairingAllowed } from "../domain/jeansLooks";
 import { compareCards, compareClusters, parseClusterKey, recommendFromHistory } from "../domain/compare";
-import type { PurchaseRecord, ProductReview } from "../domain/stylist";
+import { qualityBrief } from "../domain/qualityTrust";
+import { fitFromPastBuys } from "../domain/fitJudgement";
+import { occasionBrief } from "../domain/occasionBrief";
+import type { PurchaseRecord, ProductReview, SizingReturn } from "../domain/stylist";
 import { similarVariationLabel } from "../domain/similarItems";
 import type { StyleReview, StyleShot } from "../domain/stylingLooks";
 import { sizeChartFor, sizesFor, type SizeChart } from "../domain/sizeChart";
@@ -68,9 +71,10 @@ function brandChipsFor(cat: SiteCat) {
 }
 
 const TAG_CHOICES: { id: ContextTag; emoji: string; label: string; hint: string }[] = [
-  { id: "occasion", emoji: "🎉", label: "Upcoming Occasion", hint: "Wedding, party, trip — we'll remind you in time" },
-  { id: "size_wait", emoji: "📦", label: "Waiting for My Size", hint: "We'll watch the exact size you saved" },
+  { id: "quality_trust", emoji: "🔎", label: "Check quality first", hint: "Reviews, fabric, and whether it looks like the photos" },
+  { id: "size_wait", emoji: "📦", label: "Check the fit", hint: "From your past buys — whether this size should fit you" },
   { id: "compare", emoji: "🆚", label: "Compare", hint: "Same type side by side — pick the one that fits you" },
+  { id: "occasion", emoji: "🎉", label: "Upcoming Occasion", hint: "When will you wear it? We'll keep it ready for that day" },
 ];
 
 type Screen =
@@ -164,10 +168,7 @@ function Shell() {
     }
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [inboxOpen, setInboxOpen] = useState(false);
   const [sheet, setSheet] = useState<TagSheet | null>(null);
-  const [banner, setBanner] = useState<InboxRow | null>(null);
-  const [quiet, setQuiet] = useState<string | null>(null);
   const [couponOn, setCouponOn] = useState(false);
   const [query, setQuery] = useState("");
   const [searchInCat, setSearchInCat] = useState(false);
@@ -199,7 +200,7 @@ function Shell() {
       applyFetched(next, gen);
     });
   }, [runtime]);
-  const { inbox, bag, bagAddons, orders, catalog, prefs } = data;
+  const { bag, bagAddons, orders, catalog, prefs } = data;
   const wishlist = data.wishlist;
   const restocking = data.restocking;
   const dead = data.dead;
@@ -212,7 +213,6 @@ function Shell() {
     setSearchInCat(Boolean(opts?.inCat));
     if (value.trim()) {
       setDrawerOpen(false);
-      setInboxOpen(false);
       setSheet(null);
       setScreen({ name: "home" });
     }
@@ -221,7 +221,6 @@ function Shell() {
   function goBag(from: "home" | "wishlist") {
     setBagBack(from);
     setDrawerOpen(false);
-    setInboxOpen(false);
     setSheet(null);
     setScreen({ name: "bag" });
   }
@@ -239,10 +238,7 @@ function Shell() {
       setQuery("");
       setSearchInCat(false);
       setSheet(null);
-      setInboxOpen(false);
       setDrawerOpen(false);
-      setBanner(null);
-      setQuiet(null);
       setCouponOn(false);
       setScreen({ name: "home" });
       refresh();
@@ -253,10 +249,7 @@ function Shell() {
     void Promise.resolve(runtime.reset()).then(() => {
       setPersonaId("sujata");
       setSheet(null);
-      setInboxOpen(false);
       setDrawerOpen(false);
-      setBanner(null);
-      setQuiet(null);
       setCouponOn(false);
       setQuery("");
       setSearchInCat(false);
@@ -268,7 +261,6 @@ function Shell() {
 
   function goHome() {
     setDrawerOpen(false);
-    setInboxOpen(false);
     setSheet(null);
     setActiveCat(persona.defaultCat);
     setQuery("");
@@ -282,7 +274,6 @@ function Shell() {
     setQuery("");
     setSearchInCat(false);
     setSheet(null);
-    setInboxOpen(false);
     setDrawerOpen(false);
     setScreen((current) => {
       if (current.name === "wishlist" || current.name === "compare" || current.name === "pdp") {
@@ -300,7 +291,6 @@ function Shell() {
       if (cat && (SITE_CATS as readonly string[]).includes(cat)) setActiveCat(cat);
     }
     setDrawerOpen(false);
-    setInboxOpen(false);
     setScreen({ name: "wishlist", ...next });
   }
 
@@ -332,46 +322,6 @@ function Shell() {
     });
   }
 
-  function openInboxRow(row: InboxRow) {
-    thenApi(Promise.resolve(runtime.api.openNotification(row.id)), () => {
-      setInboxOpen(false);
-      setBanner(row);
-      goWishlist({ focusIds: row.itemIds, pingType: row.type });
-      refresh();
-    });
-  }
-
-  function applyPush(result: { sent: number; quiet: string | null }) {
-    setDrawerOpen(false);
-    setInboxOpen(false);
-    setSheet(null);
-    if (result.sent > 0) {
-      setQuiet(null);
-      thenApi(Promise.resolve(runtime.api.getInbox()), (body) => {
-        const latest = body.items[0];
-        if (latest) openInboxRow(latest);
-        else refresh();
-      });
-      return;
-    }
-    setBanner(null);
-    refresh();
-    setQuiet(result.quiet);
-  }
-
-  useEffect(() => {
-    if (!quiet) return;
-    const timer = window.setTimeout(() => setQuiet(null), 4500);
-    return () => window.clearTimeout(timer);
-  }, [quiet]);
-
-  useEffect(() => {
-    if (!banner) return;
-    const timer = window.setTimeout(() => setBanner(null), 5000);
-    return () => window.clearTimeout(timer);
-  }, [banner]);
-
-  const unread = inbox.filter((row) => !row.openedAt);
   const shownCatalog = query.trim()
     ? searchCatalog(query, searchInCat ? activeCat : undefined)
     : UNSAVED_CATALOG.filter((row) => row.category === activeCat);
@@ -438,6 +388,13 @@ function Shell() {
                 });
               }}
               onOpenCompare={(key) => setScreen({ name: "compare", clusterKey: key })}
+              reviews={runtime.store.reviews}
+              purchases={runtime.store.purchases.filter((row) => row.userId === runtime.store.userId)}
+              sizingReturns={runtime.store.sizingReturns.filter((row) => row.userId === runtime.store.userId)}
+              nowIso={runtime.now().toISOString()}
+              onSetOccasionDate={(id, date) => {
+                thenApi(Promise.resolve(runtime.api.updateTag(id, "occasion", date)), () => refresh());
+              }}
             />
           ) : null}
           {screen.name === "compare" ? (
@@ -634,24 +591,6 @@ function Shell() {
                 >
                   <IconBag /> Orders
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDrawerOpen(false);
-                    setInboxOpen(true);
-                  }}
-                >
-                  <IconBell /> Notifications{unread.length ? ` (${unread.length})` : ""}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDrawerOpen(false);
-                    setScreen({ name: "settings" });
-                  }}
-                >
-                  <IconGear /> Wishlist alerts
-                </button>
               </nav>
               <div className="drawer-demo">
                 <button type="button" className="ghost reset-demo" onClick={resetDemo}>
@@ -659,48 +598,6 @@ function Shell() {
                 </button>
               </div>
             </aside>
-          </div>
-        ) : null}
-
-        {inboxOpen ? (
-          <div className="inbox-backdrop" onClick={() => setInboxOpen(false)}>
-            <div className="inbox-sheet" onClick={(event) => event.stopPropagation()}>
-              <div className="inbox-head">
-                <h2>Notifications</h2>
-                {inbox.length ? <span className="inbox-new">{inbox.length} New</span> : null}
-              </div>
-              {inbox.length === 0 ? (
-                <p className="empty">You&apos;re all caught up</p>
-              ) : (
-                inbox.map((row) => (
-                  <button
-                    key={row.id}
-                    type="button"
-                    className="card notif-button"
-                    onClick={() => openInboxRow(row)}
-                  >
-                    <div className="notif-type">{notifLabel(row.type)}</div>
-                    <h2>{row.title}</h2>
-                    <p className="meta">{row.body}</p>
-                  </button>
-                ))
-              )}
-              <DemoPushes
-                onReset={resetDemo}
-                onPush={(run) => {
-                  void Promise.resolve(run()).then((result) =>
-                    applyPush(
-                      pushOutcome(
-                        result as {
-                          ok: boolean;
-                          body?: { sent?: number; reason?: string; suppressed?: string[] };
-                        },
-                      ),
-                    ),
-                  );
-                }}
-              />
-            </div>
           </div>
         ) : null}
 
@@ -726,7 +623,6 @@ function Shell() {
   const tools = (
           <div className="header-tools site-tools">
             <button type="button" className="icon-btn tool-label" aria-label="Profile" onClick={() => {
-              setInboxOpen(false);
               setDrawerOpen(true);
             }}>
               <IconProfile />
@@ -742,7 +638,6 @@ function Shell() {
               className="icon-btn tool-label"
               aria-label="Bag"
               onClick={() => {
-                setInboxOpen(false);
                 setScreen({ name: "bag" });
               }}
             >
@@ -798,14 +693,6 @@ function Shell() {
             {tools}
           </div>
         </header>
-        {quiet ? <p className="quiet-toast is-web">{quiet}</p> : null}
-        {banner ? (
-          <button type="button" className={`push-banner push-${banner.type}`} onClick={() => setBanner(null)}>
-            <span className="push-app">myntra</span>
-            <strong>{banner.title}</strong>
-            <p>{banner.body}</p>
-          </button>
-        ) : null}
         <button type="button" className="offer-tab" onClick={() => setCouponOn(true)}>
           UPTO ₹200 OFF
         </button>
@@ -873,7 +760,7 @@ function homeWishlistRail(items: WishlistView[], restocking: WishlistView[], lim
   const live = [...restocking, ...items].filter((row) => row.tag !== "bookmarking" && row.stockStatus !== "discontinued");
   const picked: WishlistView[] = [];
   const seen = new Set<string>();
-  for (const tag of ["occasion", "compare", "size_wait"] as const) {
+  for (const tag of ["quality_trust", "compare", "size_wait", "occasion"] as const) {
     const row = live.find((item) => item.tag === tag && !seen.has(item.id));
     if (!row) continue;
     seen.add(row.id);
@@ -1171,12 +1058,12 @@ function ArrivalCard({
 }
 
 function pingSectionTitle(type?: PushType) {
-  if (type === "occasion") return "Occasion";
   if (type === "restock") return "My size";
+  if (type === "occasion") return "Occasion";
   return null;
 }
 
-const WISH_TABS = ["All", "Compare", "Occasion", "My size", "No longer available"] as const;
+const WISH_TABS = ["All", "Compare", "Quality & trust", "My size", "Occasion", "No longer available"] as const;
 
 function wishlistBuckets(items: WishlistView[], restocking: WishlistView[], dead: WishlistView[]) {
   const live = [...restocking, ...items];
@@ -1190,8 +1077,9 @@ function wishlistBuckets(items: WishlistView[], restocking: WishlistView[], dead
     return rows;
   };
   return [
+    { title: "Quality & trust", items: take((row) => row.tag === "quality_trust") },
+    { title: "My size", items: take((row) => row.tag === "size_wait") },
     { title: "Occasion", items: take((row) => row.tag === "occasion") },
-    { title: "My size", items: take((row) => row.tag === "size_wait" || row.stockStatus !== "in_stock") },
     { title: "", items: take(() => true) },
     { title: "No longer available", items: gone },
   ];
@@ -1211,6 +1099,11 @@ function Wishlist({
   onRemove,
   onSeeSimilar,
   onOpenCompare,
+  reviews,
+  purchases,
+  sizingReturns,
+  nowIso,
+  onSetOccasionDate,
 }: {
   items: WishlistView[];
   restocking: WishlistView[];
@@ -1225,6 +1118,11 @@ function Wishlist({
   onRemove: (id: string) => void;
   onSeeSimilar: (id: string) => void;
   onOpenCompare: (key: string) => void;
+  reviews: ProductReview[];
+  purchases: PurchaseRecord[];
+  sizingReturns: SizingReturn[];
+  nowIso: string;
+  onSetOccasionDate: (id: string, date: string | null) => void;
 }) {
   const buckets = wishlistBuckets(items, restocking, dead);
   const clusters = compareClusters([...restocking, ...items]);
@@ -1257,7 +1155,13 @@ function Wishlist({
         <span className="count">{shopCatLabel(category)} · {total} items</span>
       </div>
       <p className="page-hint">
-        Showing {shopCatLabel(category)} saves. Use Men, Women, Kids, Beauty, or GenZ in the menu to switch.
+        {tab === "Quality & trust"
+          ? "You parked these to check quality. Fabric, customer stars, and whether it looks like the photos — then buy or keep looking."
+          : tab === "My size"
+            ? "From what you already bought — whether this size should fit you. Not a stock watch."
+            : tab === "Occasion"
+              ? "Parked for a day you’ll wear it. Set the date — we’ll keep the piece with that occasion."
+              : `Showing ${shopCatLabel(category)} saves. Use Men, Women, Kids, Beauty, or GenZ in the menu to switch.`}
       </p>
       {total === 0 ? (
         <p className="empty">
@@ -1323,16 +1227,51 @@ function Wishlist({
                     ? section.items.map((item) => (
                         <DeadNudge key={item.id} item={item} onRemove={onRemove} onSeeSimilar={onSeeSimilar} />
                       ))
-                    : section.items.map((item) => (
-                        <WishlistCard
-                          key={item.id}
-                          item={item}
-                          focused={focused.has(item.id)}
-                          onOpenPdp={onOpenPdp}
-                          onAddToBag={onAddToBag}
-                          onEditTag={onEditTag}
-                        />
-                      ))}
+                    : section.items.map((item) =>
+                        tab === "Quality & trust" ? (
+                          <QualityCard
+                            key={item.id}
+                            item={item}
+                            reviews={reviews}
+                            focused={focused.has(item.id)}
+                            onOpenPdp={onOpenPdp}
+                            onAddToBag={onAddToBag}
+                            onEditTag={onEditTag}
+                          />
+                        ) : tab === "Occasion" ? (
+                          <OccasionCard
+                            key={item.id}
+                            item={item}
+                            nowIso={nowIso}
+                            focused={focused.has(item.id)}
+                            onOpenPdp={onOpenPdp}
+                            onAddToBag={onAddToBag}
+                            onEditTag={onEditTag}
+                            onSetOccasionDate={onSetOccasionDate}
+                          />
+                        ) : tab === "My size" ? (
+                          <SizeFitCard
+                            key={item.id}
+                            item={item}
+                            purchases={purchases}
+                            sizingReturns={sizingReturns}
+                            reviews={reviews}
+                            focused={focused.has(item.id)}
+                            onOpenPdp={onOpenPdp}
+                            onAddToBag={onAddToBag}
+                            onEditTag={onEditTag}
+                          />
+                        ) : (
+                          <WishlistCard
+                            key={item.id}
+                            item={item}
+                            focused={focused.has(item.id)}
+                            onOpenPdp={onOpenPdp}
+                            onAddToBag={onAddToBag}
+                            onEditTag={onEditTag}
+                          />
+                        ),
+                      )}
                 </section>
               ))}
             </>
@@ -1343,7 +1282,7 @@ function Wishlist({
   );
 }
 
-function StarRating({ average, count }: { average: number; count: number }) {
+function StarRating({ average, count, hideCount }: { average: number; count: number; hideCount?: boolean }) {
   const rounded = Math.max(0, Math.min(5, Math.round(average)));
   return (
     <p className="compare-rating" aria-label={`${average.toFixed(1)} out of 5 from ${count} ratings`}>
@@ -1355,7 +1294,7 @@ function StarRating({ average, count }: { average: number; count: number }) {
         ))}
       </span>
       <strong>{average.toFixed(1)}</strong>
-      <span>({count})</span>
+      {hideCount ? null : <span>({count})</span>}
     </p>
   );
 }
@@ -1495,6 +1434,238 @@ function DeadNudge({
         <button type="button" className="wish-cta is-bag" onClick={() => onRemove(item.id)}>
           Remove ✕
         </button>
+      </div>
+    </article>
+  );
+}
+
+function QualityCard({
+  item,
+  reviews,
+  focused,
+  onOpenPdp,
+  onAddToBag,
+  onEditTag,
+}: {
+  item: WishlistView;
+  reviews: ProductReview[];
+  focused: boolean;
+  onOpenPdp: (id: string) => void;
+  onAddToBag: (id: string) => void;
+  onEditTag: (id: string) => void;
+}) {
+  const press = useLongPress(() => onEditTag(item.id));
+  const catalogRow = allCatalog().find((row) => row.productId === item.productId);
+  const brief = qualityBrief(item, catalogRow?.description, reviews);
+  return (
+    <article
+      className={`card quality-card${focused ? " focused" : ""}`}
+      data-item-id={item.id}
+      {...press}
+    >
+      <ProductThumb
+        brand={item.catalog.brand}
+        title={item.catalog.title}
+        image={item.catalog.image_url}
+        onClick={() => onOpenPdp(item.id)}
+      />
+      <div className="wish-meta">
+        <strong>{item.catalog.brand.toUpperCase()}</strong>
+        <div className="wish-title">{item.catalog.title}</div>
+        <div className="trend-price-row">
+          <div className="price">{formatInr(item.currentPrice)}</div>
+          <button
+            type="button"
+            className="tag-chip tag-quality_trust"
+            onClick={(event) => {
+              event.stopPropagation();
+              onEditTag(item.id);
+            }}
+          >
+            {TAG_EMOJI.quality_trust} {TAG_LABEL.quality_trust}
+          </button>
+        </div>
+        <dl className="quality-facts">
+          <div>
+            <dt>Fabric</dt>
+            <dd>{brief.fabric}</dd>
+          </div>
+          <div>
+            <dt>Rating</dt>
+            <dd>
+              <StarRating average={brief.rating.average} count={brief.rating.count} hideCount />
+            </dd>
+          </div>
+          <div>
+            <dt>Reviews</dt>
+            <dd>{brief.rating.count} reviews</dd>
+          </div>
+        </dl>
+        {brief.photos.length ? (
+          <div className="quality-photos">
+            <p>Photos</p>
+            <div>
+              {brief.photos.map((shot) => (
+                <img key={shot.id} src={shot.image_url} alt={`${item.catalog.title} photo`} />
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {brief.quotes.length ? (
+          <ul className="quality-quotes">
+            {brief.quotes.map((quote) => (
+              <li key={`${quote.author}-${quote.comment}`}>
+                <span>
+                  {quote.author}, {quote.city}
+                </span>
+                “{quote.comment}”
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {item.stockStatus === "in_stock" ? (
+          <button type="button" className={`wish-cta is-bag${focused ? " is-highlight" : ""}`} onClick={() => onAddToBag(item.id)}>
+            MOVE TO BAG
+          </button>
+        ) : (
+          <button type="button" className="wish-cta is-notify" disabled>
+            {item.sizeWatch?.size ? `Watching size ${item.sizeWatch.size}` : "Out of stock"}
+          </button>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function OccasionCard({
+  item,
+  nowIso,
+  focused,
+  onOpenPdp,
+  onAddToBag,
+  onEditTag,
+  onSetOccasionDate,
+}: {
+  item: WishlistView;
+  nowIso: string;
+  focused: boolean;
+  onOpenPdp: (id: string) => void;
+  onAddToBag: (id: string) => void;
+  onEditTag: (id: string) => void;
+  onSetOccasionDate: (id: string, date: string | null) => void;
+}) {
+  const press = useLongPress(() => onEditTag(item.id));
+  const brief = occasionBrief(item, nowIso);
+  const dateValue = item.occasionDate ? item.occasionDate.slice(0, 10) : "";
+  return (
+    <article
+      className={`card occasion-card${focused ? " focused" : ""}`}
+      data-item-id={item.id}
+      {...press}
+    >
+      <ProductThumb
+        brand={item.catalog.brand}
+        title={item.catalog.title}
+        image={item.catalog.image_url}
+        onClick={() => onOpenPdp(item.id)}
+      />
+      <div className="wish-meta">
+        <strong>{item.catalog.brand.toUpperCase()}</strong>
+        <div className="wish-title">{item.catalog.title}</div>
+        <div className="trend-price-row">
+          <div className="price">{formatInr(item.currentPrice)}</div>
+          <button
+            type="button"
+            className="tag-chip tag-occasion"
+            onClick={(event) => {
+              event.stopPropagation();
+              onEditTag(item.id);
+            }}
+          >
+            {TAG_EMOJI.occasion} {TAG_LABEL.occasion}
+          </button>
+        </div>
+        <p className="occasion-when">{brief.label}</p>
+        <p className="occasion-count">
+          {brief.countdown && brief.dateLabel
+            ? `${brief.countdown} · ${brief.dateLabel}`
+            : "When will you wear it?"}
+        </p>
+        <label className="occasion-date-field">
+          <span>Occasion date</span>
+          <input
+            type="date"
+            value={dateValue}
+            onChange={(event) => onSetOccasionDate(item.id, event.target.value || null)}
+          />
+        </label>
+        {item.stockStatus === "in_stock" ? (
+          <button type="button" className={`wish-cta is-bag${focused ? " is-highlight" : ""}`} onClick={() => onAddToBag(item.id)}>
+            MOVE TO BAG
+          </button>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
+function SizeFitCard({
+  item,
+  purchases,
+  sizingReturns,
+  reviews,
+  focused,
+  onOpenPdp,
+  onAddToBag,
+  onEditTag,
+}: {
+  item: WishlistView;
+  purchases: PurchaseRecord[];
+  sizingReturns: SizingReturn[];
+  reviews: ProductReview[];
+  focused: boolean;
+  onOpenPdp: (id: string) => void;
+  onAddToBag: (id: string) => void;
+  onEditTag: (id: string) => void;
+}) {
+  const press = useLongPress(() => onEditTag(item.id));
+  const judge = fitFromPastBuys(item, purchases, sizingReturns, reviews);
+  return (
+    <article
+      className={`card size-fit-card is-${judge.verdict}${focused ? " focused" : ""}`}
+      data-item-id={item.id}
+      {...press}
+    >
+      <ProductThumb
+        brand={item.catalog.brand}
+        title={item.catalog.title}
+        image={item.catalog.image_url}
+        onClick={() => onOpenPdp(item.id)}
+      />
+      <div className="wish-meta">
+        <strong>{item.catalog.brand.toUpperCase()}</strong>
+        <div className="wish-title">{item.catalog.title}</div>
+        <div className="trend-price-row">
+          <div className="price">{formatInr(item.currentPrice)}</div>
+          <button
+            type="button"
+            className="tag-chip tag-size_wait"
+            onClick={(event) => {
+              event.stopPropagation();
+              onEditTag(item.id);
+            }}
+          >
+            {TAG_EMOJI.size_wait} {TAG_LABEL.size_wait}
+          </button>
+        </div>
+        <p className="size-fit-verdict">{judge.headline}</p>
+        <p className="size-fit-reason">{judge.reason}</p>
+        {item.stockStatus === "in_stock" ? (
+          <button type="button" className={`wish-cta is-bag${focused ? " is-highlight" : ""}`} onClick={() => onAddToBag(item.id)}>
+            MOVE TO BAG
+          </button>
+        ) : null}
+        <SizeChartLink title={item.catalog.title} category={allCatalog().find((row) => row.productId === item.productId)?.category} />
       </div>
     </article>
   );
@@ -2092,11 +2263,6 @@ function Settings({
           checked={prefs.sizeRestockAlerts}
           onChange={(value) => onToggle("sizeRestockAlerts", value)}
         />
-        <PrefRow
-          label="🎉 Occasion Reminders"
-          checked={prefs.occasionReminders}
-          onChange={(value) => onToggle("occasionReminders", value)}
-        />
       </article>
     </>
   );
@@ -2317,24 +2483,24 @@ function TagSheet({
   onPick: (tag: ContextTag | null, occasionDate: string | null) => void;
   onDismiss: () => void;
 }) {
-  const [pickedOccasion, setPickedOccasion] = useState(false);
-  const [date, setDate] = useState("2026-09-05");
   const touched = useRef(false);
   const dismissRef = useRef(onDismiss);
   dismissRef.current = onDismiss;
+  const [askDate, setAskDate] = useState(false);
+  const [date, setDate] = useState("");
 
   useEffect(() => {
-    if (sheet.mode !== "add") return;
+    if (sheet.mode !== "add" || askDate) return;
     const timer = window.setTimeout(() => {
       if (!touched.current) dismissRef.current();
     }, 6000);
     return () => window.clearTimeout(timer);
-  }, [sheet.mode, sheet.itemId]);
+  }, [sheet.mode, sheet.itemId, askDate]);
 
   function choose(tag: ContextTag) {
     touched.current = true;
     if (tag === "occasion") {
-      setPickedOccasion(true);
+      setAskDate(true);
       return;
     }
     onPick(tag, null);
@@ -2343,8 +2509,6 @@ function TagSheet({
   const bindReason = usePressClick((id) => choose(id as ContextTag));
   const bindSheet = usePressClick((id) => {
     if (id === "dismiss") onDismiss();
-    else if (id === "save-date") onPick("occasion", date);
-    else if (id === "skip-date") onPick("occasion", null);
   });
 
   return (
@@ -2360,101 +2524,47 @@ function TagSheet({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="sheet-handle" aria-hidden="true" />
-        <h2>Saving this for…?</h2>
-        <p className="tag-lede">Why did you save this? We’ll remind you — or show real outfits — only when it helps you buy.</p>
-        <div className="tag-options">
-          {TAG_CHOICES.map((choice) => (
-            <button
-              key={choice.id}
-              type="button"
-              className={`tag-option tag-option-${choice.id}${pickedOccasion && choice.id === "occasion" ? " is-on" : ""}`}
-              {...bindReason(choice.id)}
-            >
-              <span className="tag-emoji">{choice.emoji}</span>
-              <strong>{choice.label}</strong>
-              <em>{choice.hint}</em>
-            </button>
-          ))}
-        </div>
-        {pickedOccasion ? (
+        {askDate ? (
           <div className="occasion-date">
-            <h3>When is the occasion?</h3>
-            <label className="date-label">
-              Date
+            <h2>When is the occasion?</h2>
+            <p className="tag-lede">Pick the day you’ll wear it. Skip if you only know it’s for later.</p>
+            <label className="occasion-date-field">
+              <span>Date</span>
               <input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
             </label>
-            <button type="button" className="cta" {...bindSheet("save-date")}>
-              Save date
-            </button>
-            <button type="button" className="ghost" {...bindSheet("skip-date")}>
-              Skip date
-            </button>
+            <div className="occasion-date-actions">
+              <button type="button" className="wish-cta is-bag" onClick={() => onPick("occasion", date || null)}>
+                Save date
+              </button>
+              <button type="button" className="ghost" onClick={() => onPick("occasion", null)}>
+                Skip date
+              </button>
+            </div>
           </div>
         ) : (
-          <button type="button" className="ghost tag-skip" {...bindSheet("dismiss")}>
-            {sheet.mode === "add" ? "Skip" : "Cancel"}
-          </button>
+          <>
+            <h2>Saving this for…?</h2>
+            <p className="tag-lede">Why did you save this? Quality, fit, compare, or an upcoming occasion.</p>
+            <div className="tag-options">
+              {TAG_CHOICES.map((choice) => (
+                <button
+                  key={choice.id}
+                  type="button"
+                  className={`tag-option tag-option-${choice.id}`}
+                  {...bindReason(choice.id)}
+                >
+                  <span className="tag-emoji">{choice.emoji}</span>
+                  <strong>{choice.label}</strong>
+                  <em>{choice.hint}</em>
+                </button>
+              ))}
+            </div>
+            <button type="button" className="ghost tag-skip" {...bindSheet("dismiss")}>
+              {sheet.mode === "add" ? "Skip" : "Cancel"}
+            </button>
+          </>
         )}
       </div>
-    </div>
-  );
-}
-
-function pushOutcome(result: {
-  ok: boolean;
-  body?: { sent?: number; reason?: string; suppressed?: string[] };
-}): { sent: number; quiet: string | null } {
-  if (!result.ok) return { sent: 0, quiet: "No notification sent." };
-  const sent = result.body?.sent ?? 0;
-  if (sent > 0) return { sent, quiet: null };
-  return { sent: 0, quiet: quietMessage(result.body?.reason ?? result.body?.suppressed?.[0]) };
-}
-
-function quietMessage(reason?: string) {
-  if (reason === "pref_off") {
-    return "No notification. This shopper turned this alert off in Settings.";
-  }
-  if (reason === "wrong_size") {
-    return "No alert. Size L came back; the saved watch is S.";
-  }
-  if (reason === "cooldown") return "No second notification. Alerts are capped at one every 48 hours.";
-  if (reason === "already_sent") return "Already notified for this restock.";
-  if (reason === "no_watch") {
-    return "No notification. This item is not watching a size.";
-  }
-  if (reason === "none_due") return "No occasion is due yet.";
-  if (reason === "threshold") return "Drop was too small to notify.";
-  return "No notification sent.";
-}
-
-function DemoPushes({
-  onPush,
-  onReset,
-}: {
-  onPush: (run: () => unknown) => void;
-  onReset: () => void;
-}) {
-  const runtime = useShopperRuntime();
-  return (
-    <div className="inbox-demo">
-      <p className="inbox-demo-kicker">See an alert</p>
-      <p className="inbox-demo-note">One tap. Lands on the product or your occasion list.</p>
-      <button type="button" onClick={() => onPush(() => runtime.restockBiba())}>
-        My size S is back
-      </button>
-      <button type="button" onClick={() => onPush(() => runtime.runOccasion())}>
-        Occasion is coming up
-      </button>
-      <p className="inbox-demo-kicker is-silent">Stays silent on purpose</p>
-      <button
-        type="button"
-        onClick={() => onPush(() => runtime.restockBibaWrongSize())}
-      >
-        Other size restocked (L) — no push
-      </button>
-      <button type="button" className="ghost reset-demo" onClick={onReset}>
-        Reset demo
-      </button>
     </div>
   );
 }
@@ -2709,12 +2819,6 @@ function thumbClass(brand: string) {
   return `thumb-${brand.toLowerCase().replace(/[^a-z]/g, "")}`;
 }
 
-function notifLabel(type: InboxRow["type"]) {
-  if (type === "restock") return "Restock";
-  if (type === "occasion") return "Occasion";
-  return "Alert";
-}
-
 function IconMyntraM() {
   return (
     <svg viewBox="0 0 56 42" width="36" height="27" aria-hidden="true" overflow="visible">
@@ -2783,16 +2887,6 @@ function IconProfile() {
     </svg>
   );
 }
-function IconBell() {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M12 3a6 6 0 0 1 6 6v3.1l1.6 2.4A1 1 0 0 1 18.8 16H5.2a1 1 0 0 1-.8-1.5L6 12.1V9a6 6 0 0 1 6-6Zm-1.7 16h3.4a1.7 1.7 0 0 1-3.4 0Z"
-      />
-    </svg>
-  );
-}
 function IconHeart({ filled = false }: { filled?: boolean }) {
   return (
     <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -2821,16 +2915,6 @@ function IconHome() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
       <path fill="none" stroke="currentColor" strokeWidth="1.6" d="M4 11 12 4l8 7v9H4z" />
-    </svg>
-  );
-}
-function IconGear() {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M19.1 12.6a7.4 7.4 0 0 0 .1-.6 7.4 7.4 0 0 0-.1-.6l2-1.6-1.9-3.3-2.4 1a7 7 0 0 0-1.1-.6l-.4-2.6H10.7l-.4 2.6a7 7 0 0 0-1.1.6l-2.4-1-1.9 3.3 2 1.6a7.4 7.4 0 0 0-.1.6 7.4 7.4 0 0 0 .1.6l-2 1.6 1.9 3.3 2.4-1c.3.2.7.5 1.1.6l.4 2.6h4.6l.4-2.6c.4-.2.8-.4 1.1-.6l2.4 1 1.9-3.3-2-1.6ZM12 15.2A3.2 3.2 0 1 1 12 8.8a3.2 3.2 0 0 1 0 6.4Z"
-      />
     </svg>
   );
 }

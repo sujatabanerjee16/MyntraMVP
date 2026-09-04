@@ -372,7 +372,7 @@ export function createShopperApi(store: ShopperStore, now: () => Date) {
       return {
         ok: true,
         status: 200,
-        body: { items: stylingConfidenceLooks(item), reviews: stylingReviews(item.catalog.title) },
+        body: { items: stylingConfidenceLooks(item), reviews: stylingReviews(item.catalog.title, item.productId) },
       };
     },
 

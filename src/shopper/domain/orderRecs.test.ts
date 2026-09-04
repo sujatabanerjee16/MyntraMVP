@@ -28,7 +28,7 @@ describe("order recs", () => {
       {
         productId: "prod-chinos",
         catalog: { brand: "WROGN", title: "Slim Fit Chinos" },
-        tag: "occasion",
+        tag: "quality_trust",
         occasionDate: null,
       },
       allCatalog(),
@@ -61,7 +61,7 @@ describe("order recs", () => {
       {
         productId: "prod-pic-infant-set",
         catalog: { brand: "Hopscotch", title: "Infant Floral Vest Set" },
-        tag: "occasion",
+        tag: "quality_trust",
         occasionDate: null,
       },
       allCatalog(),
@@ -73,18 +73,18 @@ describe("order recs", () => {
     expect(offer.picks[0]?.why).toMatch(/kids piece/i);
   });
 
-  it("mentions occasion timing when a date is tagged", () => {
+  it("mentions quality when the bag was parked for trust", () => {
     const offer = recommendForOrder(
       {
         productId: "prod-occasion",
         catalog: { brand: "Sassafras", title: "Flared Ethnic Maxi" },
-        tag: "occasion",
-        occasionDate: "2026-09-05T00:00:00.000Z",
+        tag: "quality_trust",
+        occasionDate: null,
       },
       allCatalog(),
       "2026-08-30T00:00:00.000Z",
     );
-    expect(offer.cartRead).toMatch(/6 day/);
-    expect(offer.picks[0]?.why).toMatch(/occasion/i);
+    expect(offer.cartRead).toMatch(/quality/i);
+    expect(offer.picks[0]?.why).toMatch(/quality/i);
   });
 });

@@ -131,7 +131,7 @@ function ratingFor(productId: string, title: string, reviews: ProductReview[]): 
     const average = mine.reduce((sum, row) => sum + row.rating, 0) / mine.length;
     return { average: Math.round(average * 10) / 10, count: mine.length };
   }
-  const style = stylingReviews(title);
+  const style = stylingReviews(title, productId);
   return { average: Math.round(reviewAverage(style) * 10) / 10, count: style.length };
 }
 

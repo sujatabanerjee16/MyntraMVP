@@ -9,14 +9,8 @@ afterEach(() => {
   cleanup();
 });
 
-async function openDemo(user: ReturnType<typeof userEvent.setup>) {
+async function openProfile(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Profile" }));
-  await user.click(screen.getByRole("button", { name: /Notifications/ }));
-}
-
-async function openAlerts(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("button", { name: "Profile" }));
-  await user.click(screen.getByRole("button", { name: /Wishlist alerts/ }));
 }
 
 async function openWishlist(user: ReturnType<typeof userEvent.setup>) {
@@ -33,12 +27,17 @@ async function resetDemo(user: ReturnType<typeof userEvent.setup>) {
 
 describe("wishlist mvp1", () => {
   it("opens as the myntra.com shopper site", async () => {
+    const user = userEvent.setup();
     render(<ShopperApp runtime={createShopperRuntime()} />);
 
     expect(screen.getByRole("button", { name: "MYNTRA" })).toBeTruthy();
     expect(screen.getByText("Myntra")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Profile" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Notifications" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Profile" }));
+    expect(screen.queryByRole("button", { name: /Notifications/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Wishlist alerts/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Back" }));
     expect(screen.queryByText(/Sujata is shopping/)).toBeNull();
     expect(screen.queryByRole("tab", { name: "Phone" })).toBeNull();
     expect(screen.queryByRole("button", { name: /Continue on/ })).toBeNull();
@@ -50,7 +49,7 @@ describe("wishlist mvp1", () => {
     const rail = document.querySelector(".web-page .saved-rail");
     expect(rail?.querySelectorAll(".saved-tile").length).toBeGreaterThanOrEqual(4);
     expect(rail?.querySelectorAll(".wish-heart.is-on").length).toBe(rail?.querySelectorAll(".saved-tile").length);
-    expect(rail?.textContent).toMatch(/Occasion/);
+    expect(rail?.textContent).toMatch(/Quality & trust/);
     expect(rail?.textContent).toMatch(/Compare/);
     expect(rail?.textContent).toMatch(/My size/);
     expect(rail?.textContent).toMatch(/Mitera/i);
@@ -160,13 +159,15 @@ describe("wishlist mvp1", () => {
     expect(screen.queryByRole("button", { name: "Notification settings" })).toBeNull();
     expect(screen.getByRole("tab", { name: /All/ })).toBeTruthy();
     expect(screen.getByRole("tab", { name: /Compare/ })).toBeTruthy();
-    expect(screen.getByRole("tab", { name: /Occasion/ })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: /Quality & trust/ })).toBeTruthy();
     expect(screen.getByRole("tab", { name: /My size/ })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: /Occasion/ })).toBeTruthy();
     expect(screen.queryByRole("tab", { name: /How it looks on me/ })).toBeNull();
     expect(screen.queryByRole("tab", { name: /Saved/ })).toBeNull();
     expect(screen.queryByRole("tab", { name: /Price drop/ })).toBeNull();
-    expect(screen.getByRole("heading", { name: "Occasion" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Quality & trust" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "My size" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Occasion" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "How it looks on me" })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Saved" })).toBeNull();
     expect(screen.getByRole("button", { name: /Compare \d+ dresses in Women/ })).toBeTruthy();
@@ -287,27 +288,27 @@ describe("wishlist mvp1", () => {
 
     await user.click(screen.getAllByRole("button", { name: "Save to wishlist" })[0]);
     expect(screen.getByText("Saving this for…?")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Check quality first/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Upcoming Occasion/ })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Waiting for Price Drop/ })).toBeNull();
-    expect(screen.getByRole("button", { name: /Waiting for My Size/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Check the fit/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /pick the one that fits you/ })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Not sure how it will look on me/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /Just Bookmarking/ })).toBeNull();
-    await user.click(screen.getByRole("button", { name: /Upcoming Occasion/ }));
-    await user.click(screen.getByRole("button", { name: "Skip date" }));
+    await user.click(screen.getByRole("button", { name: /Check quality first/ }));
     const dressCard = () => screen.getByText("Printed Fit & Flare Dress").closest("article")!;
     await waitFor(() => {
-      expect(dressCard().textContent).toMatch(/Occasion/);
+      expect(dressCard().textContent).toMatch(/Quality & trust/);
     });
     await user.click(within(dressCard()).getByRole("button", { name: "View in wishlist" }));
-    expect(screen.getByText("Printed Fit & Flare Dress").closest("article")?.textContent).toMatch(/Occasion/);
+    expect(screen.getByText("Printed Fit & Flare Dress").closest("article")?.textContent).toMatch(/Quality & trust/);
     await user.click(screen.getByRole("button", { name: "MYNTRA" }));
 
     await resetDemo(user);
     await user.click(screen.getAllByRole("button", { name: "Save to wishlist" })[0]);
     await user.click(screen.getByRole("button", { name: "Skip" }));
     expect(screen.getByText("Printed Fit & Flare Dress").closest("article")?.textContent).not.toMatch(
-      /Price drop|Occasion|My size|Compare|Need styling|How it looks|look on me|Bookmark|style it/,
+      /Price drop|Occasion|Quality|My size|Compare|Need styling|How it looks|look on me|Bookmark|style it/,
     );
     await user.click(within(dressCard()).getByRole("button", { name: "View in wishlist" }));
     expect(screen.getByRole("heading", { name: "Wishlist" })).toBeTruthy();
@@ -321,15 +322,14 @@ describe("wishlist mvp1", () => {
     await user.click(screen.getByRole("button", { name: "MEN" }));
 
     fireEvent.contextMenu(screen.getByText("Regular Fit Linen Shirt").closest("article")!);
-    await user.click(screen.getByRole("button", { name: /Upcoming Occasion/ }));
-    await user.click(screen.getByRole("button", { name: "Skip date" }));
-    expect(screen.getByText("Regular Fit Linen Shirt").closest("article")?.textContent).toMatch(/Occasion/);
+    await user.click(screen.getByRole("button", { name: /Check quality first/ }));
+    expect(screen.getByText("Regular Fit Linen Shirt").closest("article")?.textContent).toMatch(/Quality & trust/);
 
-    await openAlerts(user);
-    expect(screen.queryByRole("switch", { name: /Price Drop Alerts/ })).toBeNull();
-    expect(screen.getByRole("switch", { name: /Size Back-in-Stock/ }).getAttribute("aria-checked")).toBe("true");
-    expect(screen.queryByRole("switch", { name: /Selling out/ })).toBeNull();
-    expect(screen.getByRole("switch", { name: /Occasion Reminders/ }).getAttribute("aria-checked")).toBe("true");
+    await openProfile(user);
+    expect(screen.queryByRole("button", { name: /Notifications/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Wishlist alerts/ })).toBeNull();
+    expect(screen.queryByRole("switch", { name: /Size Back-in-Stock/ })).toBeNull();
+    expect(screen.queryByRole("switch", { name: /Occasion Reminders/ })).toBeNull();
   });
 
   it("does not offer a price-drop save reason or alert", async () => {
@@ -342,10 +342,9 @@ describe("wishlist mvp1", () => {
 
     await openWishlist(user);
     expect(screen.queryByRole("tab", { name: /Price drop/ })).toBeNull();
-    await openAlerts(user);
-    expect(screen.queryByRole("switch", { name: /Price Drop Alerts/ })).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Back" }));
-    await openDemo(user);
+    await openProfile(user);
+    expect(screen.queryByRole("button", { name: /Notifications/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Wishlist alerts/ })).toBeNull();
     expect(screen.queryByRole("button", { name: "Price dropped on a saved dress" })).toBeNull();
   });
 
@@ -365,28 +364,50 @@ describe("wishlist mvp1", () => {
     expect(document.querySelector(".saved-rail")?.textContent).not.toMatch(/How it looks on me/);
   });
 
-  it("restocks only size S and filters the wishlist from an occasion ping", async () => {
+  it("shows occasion saves with a wear date, not a stock watch", async () => {
     const user = userEvent.setup();
     render(<ShopperApp runtime={createShopperRuntime()} />);
+    await openWishlist(user);
+    await user.click(screen.getByRole("tab", { name: /Occasion/ }));
+    const maxi = screen.getByText("Flared Ethnic Maxi").closest("article")!;
+    expect(maxi.className).toMatch(/occasion-card/);
+    expect(maxi.textContent).toMatch(/Friend's Wedding/);
+    expect(maxi.textContent).toMatch(/days away|Sep/);
+    expect(maxi.textContent).not.toMatch(/Watching size|availability|restock/i);
+    expect(within(maxi).getByRole("button", { name: "MOVE TO BAG" })).toBeTruthy();
+  });
 
-    await openDemo(user);
-    await user.click(screen.getByRole("button", { name: /Other size restocked \(L\)/ }));
-    expect(screen.queryByText("Your size is back! 📦")).toBeNull();
-    expect(screen.getByText(/saved watch is S/)).toBeTruthy();
+  it("judges My size from past buys and does not talk about availability", async () => {
+    const user = userEvent.setup();
+    render(<ShopperApp runtime={createShopperRuntime()} />);
+    await openWishlist(user);
+    await user.click(screen.getByRole("tab", { name: /My size/ }));
+    const biba = screen.getByText("Ethnic A-Line Anarkali Kurta").closest("article")!;
+    expect(biba.className).toMatch(/size-fit-card/);
+    expect(biba.textContent).toMatch(/may not fit/i);
+    expect(biba.textContent).toMatch(/Anouk|M/);
+    expect(biba.textContent).not.toMatch(/Watching size|Out of stock|availability|restock/i);
+    expect(within(biba).queryByRole("button", { name: "MOVE TO BAG" })).toBeNull();
+  });
 
-    await openDemo(user);
-    await user.click(screen.getByRole("button", { name: "My size S is back" }));
-    expect(screen.getAllByText("Your size is back! 📦").length).toBeGreaterThan(0);
-    expect(screen.getByText("Ethnic A-Line Anarkali Kurta").closest("article")?.textContent).toMatch(/Size S/);
-
-    await resetDemo(user);
-    await openDemo(user);
-    await user.click(screen.getByRole("button", { name: "Occasion is coming up" }));
-    expect(await screen.findByRole("heading", { name: "Wishlist" })).toBeTruthy();
-    expect(screen.getByRole("tab", { name: /Occasion/ }).getAttribute("aria-selected")).toBe("true");
-    expect(screen.getByText("Flared Ethnic Maxi").closest("article")?.className).toMatch(/focused/);
-    expect(screen.getByText("Pleated Party Dress").closest("article")?.className).toMatch(/focused/);
+  it("keeps quality items on the Quality & trust tab without a notification inbox", async () => {
+    const user = userEvent.setup();
+    render(<ShopperApp runtime={createShopperRuntime()} />);
+    await openWishlist(user);
+    await user.click(screen.getByRole("tab", { name: /Quality & trust/ }));
+    expect(screen.getByText("Ruffled Off-Shoulder Mini Dress")).toBeTruthy();
+    expect(screen.getByText("Cotton Straight Kurta")).toBeTruthy();
     expect(screen.queryByText("Regular Fit Linen Shirt")).toBeNull();
+    const mini = screen.getByText("Ruffled Off-Shoulder Mini Dress").closest("article")!;
+    expect(mini.className).toMatch(/quality-card/);
+    expect(mini.textContent).toMatch(/Cotton|Viscose/i);
+    expect(mini.textContent).toMatch(/reviews/i);
+    expect(mini.textContent).toMatch(/Quality is good/);
+    expect(mini.querySelectorAll(".quality-photos img")).toHaveLength(2);
+    expect(mini.textContent).not.toMatch(/Compare with other/);
+    expect(mini.textContent).not.toMatch(/\d+(\.\d+)?\s*\/\s*10/);
+    await openProfile(user);
+    expect(screen.queryByRole("button", { name: /Notifications/ })).toBeNull();
   });
 
   it("removes a dead item from the top card and never pushes it", async () => {
@@ -397,8 +418,9 @@ describe("wishlist mvp1", () => {
     await user.click(screen.getByRole("button", { name: /Remove/ }));
     expect(screen.queryByText("This item won't be restocked")).toBeNull();
     expect(screen.queryByText("Zari Border Silk Saree")).toBeNull();
-    await openDemo(user);
-    expect(screen.getByText("You're all caught up")).toBeTruthy();
+    await openProfile(user);
+    expect(screen.queryByRole("heading", { name: "Notifications" })).toBeNull();
+    expect(screen.queryByText("You're all caught up")).toBeNull();
   });
 
   it("returns products when the shopper searches", async () => {
@@ -500,7 +522,7 @@ describe("wishlist mvp1", () => {
     expect(screen.queryByText("Floral Printed Wrap Midi Dress")).toBeNull();
   });
 
-  it("walks F1 occasion date, F5 similar, and never shows a fake conversion rate", async () => {
+  it("walks quality save, F5 similar, and never shows a fake conversion rate", async () => {
     const user = userEvent.setup();
     render(<ShopperApp runtime={createShopperRuntime()} />);
 
@@ -509,12 +531,10 @@ describe("wishlist mvp1", () => {
     expect(screen.queryByText(/conversion rate/i)).toBeNull();
 
     await user.click(screen.getAllByRole("button", { name: "Save to wishlist" })[0]);
-    await user.click(screen.getByRole("button", { name: /Upcoming Occasion/ }));
-    expect(screen.getByText("When is the occasion?")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Save date" })).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Skip date" }));
+    await user.click(screen.getByRole("button", { name: /Check quality first/ }));
+    expect(screen.queryByText("When is the occasion?")).toBeNull();
     await waitFor(() => {
-      expect(screen.getByText("Printed Fit & Flare Dress").closest("article")?.textContent).toMatch(/Occasion/);
+      expect(screen.getByText("Printed Fit & Flare Dress").closest("article")?.textContent).toMatch(/Quality & trust/);
     });
     await openWishlist(user);
     await user.click(screen.getByRole("button", { name: "See Similar Items" }));
@@ -538,18 +558,17 @@ describe("wishlist mvp1", () => {
     expect(screen.getByText("Navy Silver Zari Saree")).toBeTruthy();
   });
 
-  it("opens a restock ping on the saved size, then can bag it", async () => {
+  it("can bag a restocked size from wishlist without opening an inbox", async () => {
     const user = userEvent.setup();
-    render(<ShopperApp runtime={createShopperRuntime()} />);
-    await openDemo(user);
-    await user.click(screen.getByRole("button", { name: "My size S is back" }));
-    expect(screen.getByText("Ethnic A-Line Anarkali Kurta")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Wishlist" })).toBeTruthy();
+    const runtime = createShopperRuntime();
+    runtime.restockBiba();
+    render(<ShopperApp runtime={runtime} />);
+    await openWishlist(user);
     const restocked = screen.getByText("Ethnic A-Line Anarkali Kurta").closest("article")!;
     expect(restocked.textContent).toMatch(/Size S/);
-    expect(within(restocked).getByRole("button", { name: "MOVE TO BAG" }).className).toMatch(/is-highlight/);
     await user.click(within(restocked).getByRole("button", { name: "MOVE TO BAG" }));
     expect(screen.getByRole("heading", { name: "Shopping Bag" })).toBeTruthy();
+    expect(screen.queryByText("Your size is back! 📦")).toBeNull();
   });
 
   it("opens stylist picks with a why-recommended line", async () => {
@@ -615,14 +634,13 @@ describe("wishlist mvp1", () => {
     expect(screen.queryByText("Floral Summer Dress")).toBeNull();
   });
 
-  it("opens a restock ping after browsing men, still on the saved women item", async () => {
+  it("keeps a women wishlist item after browsing men", async () => {
     const user = userEvent.setup();
     render(<ShopperApp runtime={createShopperRuntime()} />);
     await user.click(screen.getByRole("button", { name: "MEN" }));
     expect(screen.getByText("511 Slim Jeans")).toBeTruthy();
-    await openDemo(user);
-    await user.click(screen.getByRole("button", { name: "My size S is back" }));
-    expect(await screen.findByRole("heading", { name: "Wishlist" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "WOMEN" }));
+    await openWishlist(user);
     expect(screen.getByText("Ethnic A-Line Anarkali Kurta")).toBeTruthy();
     expect(screen.getByText(/Women ·/)).toBeTruthy();
   });

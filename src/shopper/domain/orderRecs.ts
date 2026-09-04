@@ -1,5 +1,5 @@
 import { lookKindOf, pairingAllowed, isKidsLook } from "./jeansLooks";
-import { daysBetween, type ContextTag } from "./models";
+import type { ContextTag } from "./models";
 import type { CatalogProduct, SiteCat } from "../store";
 
 export type OrderRec = {
@@ -53,7 +53,7 @@ function pairScore(bagTitle: string, bagCat: string, tag: ContextTag | null, row
   if (kidsBag && (isJewelry(row) || row.category === "WOMEN" || row.category === "STUDIO")) return 0;
   if (shirtBag && isJewelry(row)) return 0;
   if ((bagCat === "MEN" || bagCat === "KIDS") && isJewelry(row)) return 0;
-  if (tag === "occasion" && ethnicBag && /earring|jewel|dress|ethnic|maxi/i.test(text)) score += 4;
+  if (tag === "quality_trust" && ethnicBag && /earring|jewel|dress|ethnic|maxi/i.test(text)) score += 4;
   if (ethnicBag && isJewelry(row)) score += 6;
   if (ethnicBag && /lip/i.test(text)) score += 4;
   if (shirtBag && /jean/i.test(text)) score += 5;
@@ -67,8 +67,8 @@ function whyFor(bagTitle: string, bagCat: string, tag: ContextTag | null, recTit
   if (bagCat === "KIDS" || isKidsLook(bagTitle)) {
     return `You're checking out ${bagTitle}. ${recTitle} is another kids piece for the same order.`;
   }
-  if (tag === "occasion") {
-    return `You saved ${bagTitle} for an occasion. ${recTitle} finishes the look so you are not placing a second order later.`;
+  if (tag === "quality_trust") {
+    return `You saved ${bagTitle} to check quality first. ${recTitle} is a real pair so you can decide with more confidence.`;
   }
   if (tag === "compare") {
     return `You saved ${bagTitle} to compare. ${recTitle} is a real pair so you can pick with more confidence.`;
@@ -76,14 +76,15 @@ function whyFor(bagTitle: string, bagCat: string, tag: ContextTag | null, recTit
   if (tag === "size_wait") {
     return `Your size is back on ${bagTitle}. ${recTitle} pairs with it without another wait.`;
   }
+  if (tag === "occasion") {
+    return `You saved ${bagTitle} for an occasion. ${recTitle} completes that look in the same order.`;
+  }
   return `You're checking out ${bagTitle}. ${recTitle} is a frequent pair for this look.`;
 }
 
-function cartRead(bagTitle: string, brand: string, tag: ContextTag | null, occasionDate: string | null, nowIso: string): string {
-  if (tag === "occasion" && occasionDate) {
-    const days = daysBetween(nowIso, occasionDate);
-    const when = days >= 0 ? ` in ${days} day${days === 1 ? "" : "s"}` : "";
-    return `This bag — ${brand} ${bagTitle} — is tagged for an occasion${when}. One extra piece now keeps the look in a single order.`;
+function cartRead(bagTitle: string, brand: string, tag: ContextTag | null): string {
+  if (tag === "quality_trust") {
+    return `This bag — ${brand} ${bagTitle} — is parked until the quality feels sure. A matching extra keeps the look in one order.`;
   }
   return `This bag — ${brand} ${bagTitle} — reads as one look. A matching extra saves a second checkout.`;
 }
@@ -126,7 +127,7 @@ export function recommendForOrder(
   }
 
   return {
-    cartRead: cartRead(bag.catalog.title, bag.catalog.brand, bag.tag, bag.occasionDate, nowIso),
+    cartRead: cartRead(bag.catalog.title, bag.catalog.brand, bag.tag),
     picks,
   };
 }

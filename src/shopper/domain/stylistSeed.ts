@@ -149,6 +149,16 @@ export const SEED_PRICE_HISTORY: PricePoint[] = [
   ]),
 ];
 
+function ratings(productId: string, scores: number[], startDays: number): ProductReview[] {
+  return scores.map((rating, index) => ({
+    id: `rv-q-${productId}-${index}`,
+    productId,
+    createdAt: ago(startDays + index),
+    rating,
+    fit: null,
+  }));
+}
+
 export const SEED_REVIEWS: ProductReview[] = [
   { id: "rv-w-1", productId: "prod-w", createdAt: ago(40), rating: 3, fit: "runs_small" },
   { id: "rv-w-2", productId: "prod-w", createdAt: ago(20), rating: 2, fit: "runs_small" },
@@ -157,20 +167,20 @@ export const SEED_REVIEWS: ProductReview[] = [
   { id: "rv-studio-dress-2", productId: "prod-studio-dress", createdAt: ago(9), rating: 4, fit: "true_to_size" },
   { id: "rv-global-1", productId: "prod-global-desi", createdAt: ago(30), rating: 4, fit: "runs_large" },
   { id: "rv-linen-1", productId: "prod-linen", createdAt: ago(22), rating: 3, fit: "runs_small" },
-  { id: "rv-libas-1", productId: "prod-libas", createdAt: ago(40), rating: 5, fit: null },
-  { id: "rv-libas-2", productId: "prod-libas", createdAt: ago(22), rating: 4, fit: null },
-  { id: "rv-libas-3", productId: "prod-libas", createdAt: ago(8), rating: 5, fit: null },
-  { id: "rv-maxi-1", productId: "prod-occasion", createdAt: ago(18), rating: 5, fit: null },
-  { id: "rv-maxi-2", productId: "prod-occasion", createdAt: ago(9), rating: 4, fit: null },
-  { id: "rv-vero-1", productId: "prod-occasion-2", createdAt: ago(15), rating: 5, fit: null },
-  { id: "rv-vero-2", productId: "prod-occasion-2", createdAt: ago(6), rating: 4, fit: null },
-  { id: "rv-and-1", productId: "prod-dress-cmp-1", createdAt: ago(20), rating: 4, fit: null },
-  { id: "rv-and-2", productId: "prod-dress-cmp-1", createdAt: ago(11), rating: 4, fit: null },
-  { id: "rv-and-3", productId: "prod-dress-cmp-1", createdAt: ago(4), rating: 3, fit: null },
   { id: "rv-tokyo-1", productId: "prod-dress-cmp-2", createdAt: ago(16), rating: 5, fit: null },
   { id: "rv-tokyo-2", productId: "prod-dress-cmp-2", createdAt: ago(7), rating: 4, fit: null },
   { id: "rv-tokyo-3", productId: "prod-dress-cmp-2", createdAt: ago(3), rating: 4, fit: null },
   { id: "rv-jewel-rating-only", productId: "prod-studio-jewel", createdAt: ago(11), rating: 5, fit: null },
+  ...ratings("prod-libas", [5, 4, 5, 5, 4, 5, 4, 5, 5, 4, 5, 4], 8),
+  ...ratings("prod-occasion", [5, 4, 5, 5, 4, 5, 4, 5, 5, 4, 4, 5], 6),
+  ...ratings("prod-occasion-2", [5, 4, 5, 4, 5, 5, 4, 5, 4, 5], 5),
+  ...ratings("prod-dress-cmp-1", [4, 4, 3, 5, 4, 4, 5, 4, 4, 5, 3], 4),
+  ...ratings("prod-kurta-cmp-1", [5, 4, 5, 4, 5, 5, 4, 5, 4], 7),
+  ...ratings("prod-kurta-cmp-3", [4, 5, 4, 5, 4, 4, 5, 4], 9),
+  ...ratings("prod-pic-mustard-saree", [5, 4, 5, 5, 4, 5, 4, 5, 5], 10),
+  ...ratings("prod-pic-emerald-saree", [5, 4, 5, 4, 5, 5, 4, 5], 11),
+  ...ratings("prod-pic-olive-maxi", [4, 5, 5, 4, 5, 4, 5, 5, 4], 3),
+  ...ratings("prod-biba", [5, 4, 5, 5, 4, 5, 4], 12),
 ];
 
 export function purchasesFor(userId: string): PurchaseRecord[] {

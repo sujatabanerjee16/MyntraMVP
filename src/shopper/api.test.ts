@@ -60,19 +60,11 @@ describe("shopper wishlist api", () => {
     expect(runtime.api.getInbox().body.items.filter((row) => row.type === "restock")).toHaveLength(1);
   });
 
-  it("batches occasion items and requires a date", () => {
+  it("does not push occasion saves more than a week out", () => {
     const runtime = createShopperRuntime();
-    const first = runtime.runOccasion();
-    expect(first.body.sent).toBe(1);
-    const ping = runtime.api.getInbox().body.items[0];
-    expect(ping?.body).toMatch(/2 items/);
+    expect(runtime.store.items.some((row) => row.tag === "occasion" && row.occasionDate)).toBe(true);
     expect(runtime.runOccasion().body.sent).toBe(0);
-
-    const noDate = createShopperRuntime();
-    for (const item of noDate.store.items) {
-      if (item.tag === "occasion") item.occasionDate = null;
-    }
-    expect(noDate.runOccasion().body.sent).toBe(0);
+    expect(runtime.api.getInbox().body.items.filter((row) => row.type === "occasion")).toHaveLength(0);
 
     const muted = createShopperRuntime();
     muted.api.setPreferences({ occasionReminders: false });

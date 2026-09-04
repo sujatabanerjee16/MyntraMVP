@@ -100,14 +100,21 @@ try {
   await page.goto(url, { waitUntil: "domcontentloaded" });
   await page.locator(".m-logo").waitFor();
   await showCursor(page);
-  await setCaption(page, "Home", "Browsing Myntra like a shopper — new arrivals on the page.");
-  mark("Home", "Browsing Myntra like a shopper — new arrivals on the page.");
-  await sleep(1600);
+  await setCaption(page, "Home", "Browsing Women — Men, Kids, Beauty, and GenZ sit in the bar.");
+  mark("Home", "Browsing Women — Men, Kids, Beauty, and GenZ sit in the bar.");
+  await sleep(1400);
+  const cats = page.locator(".web-cats");
+  await clickHuman(page, cats.getByRole("button", { name: "MEN", exact: true }));
+  await page.getByText("Men · New arrivals").waitFor();
+  await sleep(900);
+  await clickHuman(page, cats.getByRole("button", { name: "WOMEN", exact: true }));
+  await page.getByText("Women · New arrivals").waitFor();
+  await sleep(700);
 
   await page.mouse.wheel(0, 480);
-  await sleep(700);
+  await sleep(600);
   await page.mouse.wheel(0, 520);
-  await sleep(800);
+  await sleep(700);
 
   const dressCard = page.locator(".trend-card-wrap", { hasText: "Floral Summer Dress" }).first();
   await dressCard.scrollIntoViewIfNeeded();
@@ -116,105 +123,94 @@ try {
   mark("Size chart", "Apparel listings have a size chart. Sarees and accessories skip it.");
   await clickHuman(page, dressCard.getByRole("button", { name: "Size chart" }));
   await by("heading", { name: "Size chart" }).waitFor();
-  await sleep(1800);
+  await sleep(1600);
   await clickHuman(page, by("button", { name: "Close" }));
-  await sleep(500);
+  await sleep(400);
 
   await setCaption(page, "Save to wishlist", "Heart tap to save — not Add to Bag.");
   mark("Save to wishlist", "Heart tap to save — not Add to Bag.");
-  await clickHuman(page, by("button", { name: "Save to wishlist" }).first());
+  await clickHuman(page, dressCard.getByRole("button", { name: "Save to wishlist" }));
   await by("heading", { name: "Saving this for…?" }).waitFor();
   await setCaption(
     page,
     "Why are you saving this?",
-    "MVP asks at the heart tap: occasion, size, styling, or just bookmarking.",
+    "Three reasons at the heart tap: Check quality first, Waiting for My Size, or Compare. Skip is allowed.",
   );
-  mark("Why are you saving this?", "MVP asks at the heart tap: occasion, price, size, or just bookmarking.");
-  await sleep(1200);
-  await setCaption(page, "Upcoming Occasion", "Choosing Upcoming Occasion — this is for a date, not a folder.");
-  mark("Upcoming Occasion", "Choosing Upcoming Occasion — this is for a date, not a folder.");
-  await clickHuman(page, by("button", { name: /Upcoming Occasion/ }));
-  await by("heading", { name: "When is the occasion?" }).waitFor();
-  await setCaption(page, "Occasion date", "Setting when the occasion is, so a reminder can fire in time.");
-  mark("Occasion date", "Setting when the occasion is, so a reminder can fire in time.");
-  await sleep(900);
-  await clickHuman(page, by("button", { name: "Save date" }));
+  mark("Why are you saving this?", "Three reasons at the heart tap: Check quality first, Waiting for My Size, or Compare. Skip is allowed.");
+  await sleep(1400);
+  await setCaption(page, "Compare", "Choosing Compare — same-type saves sit side by side later.");
+  mark("Compare", "Choosing Compare — same-type saves sit side by side later.");
+  await clickHuman(page, by("button", { name: /pick the one that fits you/ }));
   await sleep(1000);
 
   await setCaption(page, "View in wishlist", "After the heart, a button takes you to that save.");
   mark("View in wishlist", "After the heart, a button takes you to that save.");
-  await clickHuman(page, by("button", { name: "View in wishlist" }).first());
+  await clickHuman(page, dressCard.getByRole("button", { name: "View in wishlist" }));
   await by("heading", { name: "Wishlist" }).waitFor();
-  await sleep(1000);
-
-  await setCaption(page, "Wishlist tabs", "The list is tabbed by why you saved — Occasion, My size, Need styling, Saved.");
-  mark("Wishlist tabs", "The list is tabbed by why you saved — Occasion, My size, Need styling, Saved.");
-  await clickHuman(page, by("tab", { name: /Occasion/ }));
-  await sleep(1100);
-  await clickHuman(page, by("tab", { name: /No longer available/ }));
-  await sleep(1100);
-  await clickHuman(page, by("tab", { name: /^All/ }));
   await sleep(900);
 
-  await setCaption(page, "Shop as", "Profile has three shoppers — Sujata, Priya, Kabir.");
-  mark("Shop as", "Profile has three shoppers — Sujata, Priya, Kabir.");
-  await clickHuman(page, by("button", { name: "Profile" }));
-  await page.getByRole("listbox", { name: "Shoppers" }).waitFor();
-  await page.getByText("Priya").first().waitFor();
-  await page.getByText("Kabir").first().waitFor();
-  await sleep(1600);
-  await clickHuman(page, page.locator(".drawer").getByRole("button", { name: "Home" }));
-  await sleep(700);
+  await setCaption(page, "Wishlist tabs", "All · Compare · Quality & trust · My size · No longer available — filtered by Women.");
+  mark("Wishlist tabs", "All · Compare · Quality & trust · My size · No longer available — filtered by Women.");
+  await clickHuman(page, by("tab", { name: /Compare/ }));
+  await sleep(1100);
+  await clickHuman(page, by("tab", { name: /No longer available/ }));
+  await page.getByText("Zari Border Silk Saree").waitFor();
+  await sleep(1100);
+  await clickHuman(page, by("tab", { name: /^All/ }));
+  await sleep(800);
 
-  await setCaption(page, "Wishlist alerts", "Two mutes: size and occasion. Dead items never notify. No price-drop alert.");
-  mark("Wishlist alerts", "Two mutes: size and occasion. Dead items never notify. No price-drop alert.");
-  await clickHuman(page, by("button", { name: "Wishlist", exact: true }));
-  await by("heading", { name: "Wishlist" }).waitFor();
-  await clickHuman(page, by("button", { name: "Notification settings" }));
-  await by("heading", { name: "Wishlist alerts" }).waitFor();
-  await sleep(1500);
+  await setCaption(page, "Compare dresses", "Same-type dresses: price, stars, ratings, a quality note, Lowest here, and Buy this.");
+  mark("Compare dresses", "Same-type dresses: price, stars, ratings, a quality note, Lowest here, and Buy this.");
+  await clickHuman(page, by("button", { name: /Compare \d+ dresses in Women/ }));
+  await by("checkbox", { name: /In stock only/ }).waitFor();
+  await sleep(1600);
+  await clickHuman(page, by("checkbox", { name: /In stock only/ }));
+  await sleep(1200);
   await clickHuman(page, by("button", { name: "Back" }));
+  await by("heading", { name: "Wishlist" }).waitFor();
   await sleep(500);
 
-  await setCaption(page, "Wrong size", "Size L came back. Watch is S — so this stays silent on purpose.");
-  mark("Wrong size", "Size L came back. Watch is S — so this stays silent on purpose.");
-  await clickHuman(page, by("button", { name: "Notifications" }));
-  await sleep(600);
-  await clickHuman(page, by("button", { name: /Other size restocked \(L\)/ }));
-  await page.locator(".quiet-toast").getByText(/saved watch is S/).waitFor();
-  await sleep(1800);
+  await setCaption(page, "Category filter", "MEN · WOMEN · KIDS · BEAUTY · GENZ — the list never mixes categories.");
+  mark("Category filter", "MEN · WOMEN · KIDS · BEAUTY · GENZ — the list never mixes categories.");
+  await clickHuman(page, cats.getByRole("button", { name: "MEN", exact: true }));
+  await page.getByText(/Men ·/).waitFor();
+  await sleep(1100);
+  await clickHuman(page, cats.getByRole("button", { name: "WOMEN", exact: true }));
+  await page.getByText(/Women ·/).waitFor();
+  await sleep(700);
 
-  await setCaption(page, "Your size is back", "Size S restocked — ping opens the My size tab with S selected.");
-  mark("Your size is back", "Size S restocked — ping opens the My size tab with S selected.");
-  await clickHuman(page, by("button", { name: "Notifications" }));
-  await sleep(600);
-  await clickHuman(page, by("button", { name: "My size S is back" }));
-  await page.locator(".push-banner").getByText("Your size is back").waitFor();
-  await by("tab", { name: /My size/ }).waitFor();
-  await sleep(2000);
+  await setCaption(page, "Shop as", "Three shoppers on home — Sujata, Priya, Kabir.");
+  mark("Shop as", "Three shoppers on home — Sujata, Priya, Kabir.");
+  await clickHuman(page, by("button", { name: "MYNTRA" }));
+  await page.getByRole("listbox", { name: "Shoppers" }).waitFor();
+  await page.getByRole("option", { name: /Priya/ }).waitFor();
+  await page.getByRole("option", { name: /Kabir/ }).waitFor();
+  await sleep(1600);
 
-  await setCaption(page, "Occasion reminder", "Occasion ping opens the Occasion tab on those items.");
-  mark("Occasion reminder", "Occasion ping opens the Occasion tab on those items.");
-  await clickHuman(page, by("button", { name: "Notifications" }));
-  await sleep(600);
-  await clickHuman(page, by("button", { name: "Occasion is coming up" }));
+  await setCaption(page, "Bag", "Moving a saved dress to bag — recs stay on this page.");
+  mark("Bag", "Moving a saved dress to bag — recs stay on this page.");
+  await clickHuman(page, by("button", { name: "Wishlist", exact: true }));
   await by("heading", { name: "Wishlist" }).waitFor();
-  await by("tab", { name: /Occasion/ }).waitFor();
-  await page.getByText("Flared Ethnic Maxi").waitFor();
-  await sleep(1800);
-
-  await setCaption(page, "Bag", "Moving an occasion piece to bag — recs stay on this page.");
-  mark("Bag", "Moving an occasion piece to bag — recs stay on this page.");
-  const occasionCard = page.locator("article").filter({ hasText: "Flared Ethnic Maxi" }).first();
-  await clickHuman(page, occasionCard.getByRole("button", { name: "MOVE TO BAG" }));
+  await clickHuman(page, by("tab", { name: /Quality & trust/ }));
+  const qualityCard = page.locator("article").filter({ hasText: "Flared Ethnic Maxi" }).first();
+  await qualityCard.waitFor();
+  await clickHuman(page, qualityCard.getByRole("button", { name: "MOVE TO BAG" }));
   await by("heading", { name: "Shopping Bag" }).waitFor();
   await by("heading", { name: "Recommended for this purchase" }).waitFor();
-  await sleep(1800);
-  await setCaption(page, "Order", "Place order sits next to the item — this is the buy moment the reminder was for.");
-  mark("Order", "Place order sits next to the item — this is the buy moment the reminder was for.");
+  await sleep(1600);
+  await setCaption(page, "Checkout", "Place order opens address and UPI or COD — then Pay.");
+  mark("Checkout", "Place order opens address and UPI or COD — then Pay.");
   await clickHuman(page, by("button", { name: "Place order" }));
+  await by("heading", { name: "Checkout" }).waitFor();
+  await page.getByText("Sujata Banerjee").waitFor();
+  await sleep(1200);
+  await clickHuman(page, by("radio", { name: "Cash on Delivery" }));
+  await sleep(700);
+  await setCaption(page, "Order", "Pay completes the order.");
+  mark("Order", "Pay completes the order.");
+  await clickHuman(page, by("button", { name: /^PAY ₹/ }));
   await page.getByText("Order successful").waitFor();
-  await sleep(2400);
+  await sleep(2200);
 } catch (err) {
   failed = err;
   console.error(err);

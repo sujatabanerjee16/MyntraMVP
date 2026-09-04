@@ -284,10 +284,10 @@ const PRODUCT_SEARCH: Record<string, string> = {
 
 export const SAVED_CATALOG: CatalogProduct[] = [
   { productId: "prod-anouk-live", sku: "sku-anouk-m", brand: "Anouk", title: "Embroidered Kurta Set", price: 2499, size: "M", sizeOos: false, image_url: "/shopper/biba-product.png", category: "WOMEN" },
-  { productId: "prod-libas", sku: LIBAS_SKU, brand: "Libas", title: "Floral Printed Wrap Midi Dress", price: 3299, size: "M", sizeOos: false, image_url: "/shopper/libas-product.png", category: "WOMEN" },
-  { productId: "prod-biba", sku: BIBA_SKU, brand: "Biba", title: "Ethnic A-Line Anarkali Kurta", price: 4499, size: "S", sizeOos: true, image_url: "/shopper/biba-product.png", category: "WOMEN" },
-  { productId: "prod-occasion", sku: "sku-occasion-m", brand: "Sassafras", title: "Flared Ethnic Maxi", price: 2799, size: "M", sizeOos: false, image_url: IMG.studioDress, category: "WOMEN" },
-  { productId: "prod-occasion-2", sku: "sku-occasion-2-m", brand: "Vero Moda", title: "Pleated Party Dress", price: 2499, size: "M", sizeOos: false, image_url: "/shopper/women-floral.jpg", category: "WOMEN" },
+  { productId: "prod-libas", sku: LIBAS_SKU, brand: "Libas", title: "Floral Printed Wrap Midi Dress", price: 3299, size: "M", sizeOos: false, image_url: "/shopper/libas-product.png", category: "WOMEN", description: "Floral wrap midi in printed viscose. Soft drape; the wrap holds if you double-knot it." },
+  { productId: "prod-biba", sku: BIBA_SKU, brand: "Biba", title: "Ethnic A-Line Anarkali Kurta", price: 4499, size: "S", sizeOos: true, image_url: "/shopper/biba-product.png", category: "WOMEN", description: "Anarkali kurta with a flared skirt. Heavier festive fabric — sits structured through a ceremony." },
+  { productId: "prod-occasion", sku: "sku-occasion-m", brand: "Sassafras", title: "Flared Ethnic Maxi", price: 2799, size: "M", sizeOos: false, image_url: IMG.studioDress, category: "WOMEN", description: "Flared ethnic maxi with a gathered waist. Airy cotton-blend, easy for a ceremony." },
+  { productId: "prod-occasion-2", sku: "sku-occasion-2-m", brand: "Vero Moda", title: "Pleated Party Dress", price: 2499, size: "M", sizeOos: false, image_url: "/shopper/women-floral.jpg", category: "WOMEN", description: "Pleated party dress in a crepe finish. Sharp folds, sits close without feeling stiff." },
   { productId: "prod-linen", sku: "sku-linen-m", brand: "H&M", title: "Regular Fit Linen Shirt", price: 1999, size: "M", sizeOos: false, image_url: "/shopper/linen-product.jpg", category: "MEN", description: "Regular-fit linen shirt in a speckled mid-blue. Breathable weave, full placket, easy with jeans or chinos." },
   { productId: "prod-dead", sku: "sku-dead-s", brand: "Anouk", title: "Zari Border Silk Saree", price: 1899, size: "OS", sizeOos: true, image_url: "/shopper/women-kurta.jpg", category: "WOMEN", description: "Plum silk-blend saree with a wide gold zari border and a magenta piping. Draped with a black velvet blouse." },
   { productId: "prod-levis-wish", sku: "sku-levis-wish-32", brand: "Levi's", title: "512 Slim Tapered Jeans", price: 2999, size: "32", sizeOos: false, image_url: IMG.menJeans, category: "MEN" },
@@ -408,7 +408,7 @@ export const SEED_ITEMS: WishlistItem[] = [
     selectedSize: "M",
     tag: "occasion",
     bucketId: "wedding",
-    occasionDate: "2026-09-05T00:00:00.000Z",
+    occasionDate: "2026-09-15T00:00:00.000Z",
     savedAt: "2026-08-15T10:00:00.000Z",
     status: "active",
     stockStatus: "in_stock",
@@ -431,8 +431,8 @@ export const SEED_ITEMS: WishlistItem[] = [
     currentPrice: 2499,
     selectedSize: "M",
     tag: "occasion",
-    bucketId: "wedding",
-    occasionDate: "2026-09-05T00:00:00.000Z",
+    bucketId: "summer",
+    occasionDate: "2026-09-20T00:00:00.000Z",
     savedAt: "2026-08-16T10:00:00.000Z",
     status: "active",
     stockStatus: "in_stock",
@@ -540,19 +540,19 @@ function asUser(userId: string, base: WishlistItem, id: string, patch: Partial<W
   return { ...structuredClone(base), user_id: userId, id, ...patch };
 }
 
-/** Extra home-rail saves — every site category, never Bookmark, no dated occasions. */
+/** Extra home-rail saves — every site category, never Bookmark. */
 const HOME_RAIL_MIX: Array<{ sku: string; tag: Exclude<ContextTag, "bookmarking" | "price_drop">; sizeOos?: boolean }> = [
-  { sku: "sku-chinos-32", tag: "occasion" },
+  { sku: "sku-chinos-32", tag: "quality_trust" },
   { sku: "sku-jacket-m", tag: "size_wait" },
-  { sku: "sku-saree-os", tag: "occasion" },
+  { sku: "sku-saree-os", tag: "quality_trust" },
   { sku: "sku-kids-hoodie", tag: "compare" },
-  { sku: "sku-kids-shorts", tag: "occasion" },
-  { sku: "sku-home-curtain", tag: "occasion" },
+  { sku: "sku-kids-shorts", tag: "quality_trust" },
+  { sku: "sku-home-curtain", tag: "quality_trust" },
   { sku: "sku-home-dinner", tag: "compare" },
-  { sku: "sku-beauty-palette", tag: "occasion" },
+  { sku: "sku-beauty-palette", tag: "quality_trust" },
   { sku: "sku-beauty-cream", tag: "compare" },
   { sku: "sku-genz-hoodie", tag: "compare" },
-  { sku: "sku-studio-blazer", tag: "occasion" },
+  { sku: "sku-studio-blazer", tag: "quality_trust" },
 ];
 
 function itemFromCatalog(
@@ -575,7 +575,7 @@ function itemFromCatalog(
     currentPrice: product.price,
     selectedSize: product.size,
     tag: spec.tag,
-    bucketId: spec.tag === "occasion" || spec.tag === "size_wait" ? "wedding" : "summer",
+    bucketId: spec.tag === "size_wait" ? "wedding" : "summer",
     occasionDate: null,
     savedAt,
     status: "active",
@@ -636,32 +636,32 @@ function wishFromSaved(userId: string, id: string, sku: string, tag: ContextTag,
 
 function kurtaClusterFor(userId: string, idPrefix: string): WishlistItem[] {
   return [
-    wishFromSaved(userId, `${idPrefix}-kurta-1`, "sku-kurta-cmp-1", "occasion", "2026-07-21T10:00:00.000Z"),
+    wishFromSaved(userId, `${idPrefix}-kurta-1`, "sku-kurta-cmp-1", "quality_trust", "2026-07-21T10:00:00.000Z"),
     wishFromSaved(userId, `${idPrefix}-kurta-2`, "sku-kurta-cmp-2", "compare", "2026-07-22T10:00:00.000Z"),
-    wishFromSaved(userId, `${idPrefix}-kurta-3`, "sku-kurta-cmp-3", "occasion", "2026-07-23T10:00:00.000Z"),
+    wishFromSaved(userId, `${idPrefix}-kurta-3`, "sku-kurta-cmp-3", "quality_trust", "2026-07-23T10:00:00.000Z"),
   ];
 }
 
 function dressClusterFor(userId: string, idPrefix: string): WishlistItem[] {
   return [
-    wishFromSaved(userId, `${idPrefix}-dress-1`, "sku-dress-cmp-1", "occasion", "2026-08-24T10:00:00.000Z"),
+    wishFromSaved(userId, `${idPrefix}-dress-1`, "sku-dress-cmp-1", "quality_trust", "2026-08-24T10:00:00.000Z"),
     wishFromSaved(userId, `${idPrefix}-dress-2`, "sku-dress-cmp-2", "compare", "2026-08-25T10:00:00.000Z"),
   ];
 }
 
 function shirtClusterFor(userId: string, idPrefix: string): WishlistItem[] {
   return [
-    wishFromSaved(userId, `${idPrefix}-shirt-1`, "sku-shirt-cmp-1", "occasion", "2026-07-21T10:00:00.000Z"),
+    wishFromSaved(userId, `${idPrefix}-shirt-1`, "sku-shirt-cmp-1", "quality_trust", "2026-07-21T10:00:00.000Z"),
     wishFromSaved(userId, `${idPrefix}-shirt-2`, "sku-shirt-cmp-2", "compare", "2026-07-22T10:00:00.000Z"),
   ];
 }
 
 /** Four extra home-rail tiles so the second row fills on a 7-column grid. */
 function picRailFor(userId: string, idPrefix: string): WishlistItem[] {
-  const specs: Array<{ sku: string; tag: "occasion" | "compare"; at: string }> = [
-    { sku: "sku-pic-mustard-saree", tag: "occasion", at: "2026-07-21T18:00:00.000Z" },
-    { sku: "sku-pic-emerald-saree", tag: "occasion", at: "2026-07-21T16:00:00.000Z" },
-    { sku: "sku-pic-olive-maxi", tag: "occasion", at: "2026-07-21T14:00:00.000Z" },
+  const specs: Array<{ sku: string; tag: "quality_trust" | "compare"; at: string }> = [
+    { sku: "sku-pic-mustard-saree", tag: "quality_trust", at: "2026-07-21T18:00:00.000Z" },
+    { sku: "sku-pic-emerald-saree", tag: "quality_trust", at: "2026-07-21T16:00:00.000Z" },
+    { sku: "sku-pic-olive-maxi", tag: "quality_trust", at: "2026-07-21T14:00:00.000Z" },
     { sku: "sku-pic-chunky", tag: "compare", at: "2026-07-21T12:00:00.000Z" },
   ];
   return specs.map((spec, index) =>
@@ -755,7 +755,7 @@ export const PERSONAS: ShopperPersona[] = [
     email: "priya@example.com",
     age: 32,
     city: "Mumbai",
-    blurb: "occasion-driven, a few intentional saves",
+    blurb: "compares a few saves until the quality feels sure",
     phoneLine: "She's on her phone",
     address: "11, Bandra West, Mumbai, 400050",
     defaultCat: "WOMEN",

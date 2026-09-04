@@ -11,7 +11,7 @@ function kurta(id: string, title: string, savedAt: string): WishlistItem {
     user_id: DEMO_USER_ID,
     productId: `prod-${id}`,
     sku: `sku-${id}`,
-    tag: "occasion",
+    tag: "quality_trust",
     occasionDate: null,
     savedAt,
     stockStatus: "in_stock",

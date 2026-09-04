@@ -12,6 +12,7 @@
     "build:server": "tsc -p tsconfig.server.json --noEmit",
     "start:server": "tsx server/index.ts",
     "preview": "vite preview",
+    "record:shopper": "node scripts/record-shopper.mjs",
     "test": "vitest run"
   },
   "dependencies": {
@@ -32,6 +33,7 @@
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
     "jsdom": "^26.1.0",
+    "playwright": "^1.62.1",
     "vite": "^7.1.5",
     "vitest": "^3.2.4"
   }

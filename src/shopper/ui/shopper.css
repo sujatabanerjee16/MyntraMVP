@@ -697,6 +697,11 @@
   color: #9a5b00;
 }
 
+.tag-quality_trust {
+  background: #eef7f3;
+  color: #0f766e;
+}
+
 .tag-price_drop {
   background: #fff0f4;
   color: #c2174a;
@@ -742,7 +747,7 @@
 
 .tag-options {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 14px 0 16px;
 }
@@ -790,6 +795,7 @@
 }
 
 .tag-option-occasion { background: #fff6ea; }
+.tag-option-quality_trust { background: #eef7f3; }
 .tag-option-price_drop { background: #fff0f4; }
 .tag-option-size_wait { background: #eef4ff; }
 .tag-option-compare { background: #f3eefc; }
@@ -813,9 +819,64 @@
   margin-top: 4px;
 }
 
+.occasion-date h2,
 .occasion-date h3 {
   margin: 0 0 4px;
-  font-size: 15px;
+  font-size: 18px;
+}
+
+.occasion-date-field {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+
+.occasion-date-field input {
+  font: 700 14px Assistant, "Segoe UI", sans-serif;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: #282c3f;
+}
+
+.occasion-date-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.wishlist-page .occasion-card {
+  grid-column: 1 / -1;
+}
+
+.occasion-card {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.occasion-when {
+  margin: 10px 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #9a5b00;
+}
+
+.occasion-count {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #3d3d3d;
+}
+
+.occasion-card .wish-cta {
+  margin-top: 4px;
 }
 
 .push-banner {
@@ -1018,8 +1079,159 @@
 
 .wishlist-page .wish-section,
 .wishlist-page .dead-nudge,
-.wishlist-page .wish-block.has-looks {
+.wishlist-page .wish-block.has-looks,
+.wishlist-page .quality-card {
   grid-column: 1 / -1;
+}
+
+.quality-card {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.quality-facts {
+  margin: 8px 0 0;
+  display: grid;
+  gap: 8px;
+}
+
+.quality-facts div {
+  display: grid;
+  gap: 2px;
+}
+
+.quality-facts dt {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+
+.quality-facts dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #282c3f;
+}
+
+.quality-copy {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #3d3d3d;
+}
+
+.quality-quotes {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.quality-quotes li {
+  margin: 0;
+  padding: 8px 10px;
+  background: #f6f7f8;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #282c3f;
+}
+
+.quality-quotes span {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #6b6b76;
+}
+
+.quality-photos {
+  margin: 10px 0 0;
+}
+
+.quality-photos p {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+
+.quality-photos div {
+  display: flex;
+  gap: 6px;
+}
+
+.quality-photos img {
+  width: 96px;
+  height: 128px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f4f4f5;
+}
+
+.quality-facts .compare-rating {
+  margin: 0;
+}
+
+.quality-card .wish-cta,
+.quality-card .text-link {
+  margin-top: 10px;
+}
+
+@media (max-width: 560px) {
+  .quality-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 10px;
+  }
+}
+
+.wishlist-page .size-fit-card {
+  grid-column: 1 / -1;
+}
+
+.size-fit-card {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.size-fit-verdict {
+  margin: 10px 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.size-fit-card.is-will_fit .size-fit-verdict {
+  color: #0f766e;
+}
+
+.size-fit-card.is-may_not_fit .size-fit-verdict {
+  color: #b42318;
+}
+
+.size-fit-card.is-unsure .size-fit-verdict {
+  color: #9a5b00;
+}
+
+.size-fit-reason {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #3d3d3d;
+}
+
+.size-fit-card .wish-cta {
+  margin-top: 10px;
 }
 
 .wish-section {
@@ -1038,7 +1250,7 @@
 
 .wish-tabs {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   width: 100%;
   gap: 0;
   margin: -4px 0 16px;

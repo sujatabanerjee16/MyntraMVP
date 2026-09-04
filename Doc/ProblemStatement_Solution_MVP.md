@@ -1,19 +1,19 @@
 # 📦 PRD: Myntra Wishlist — Comparison MVP
 **Product:** Myntra Wishlist — help the shopper **pick among same-type saves**  
-**Version:** 2.0  
+**Version:** 3.0  
 **Status:** Source of truth for the shopper prototype (`/` → `src/shopper/`)  
 **Platform:** Shopper web prototype (Myntra-like site). Mobile app contracts stay compatible.  
-**Research Base:** 6 user interviews + 2 survey datasets; live prototype learning (tags, restock, occasion, dead items)
+**Research Base:** 6 user interviews + 2 survey datasets; live prototype learning (quality, fit, compare, occasion, dead items)
 
 ---
 
 ## 🧭 North Star
 
-> Shoppers save **two or more of the same kind of thing** (kurtas, dresses, shirts) because they are still choosing.  
-> Today the wishlist groups by **why they saved** (occasion, size, how it looks). It never puts those same-type saves **side by side**.  
-> This MVP’s job is to **help them pick** — colour, design, on-body photos of **that** SKU, reviews, a honest quality signal, price as a fact, stock — then bag one.
+> Shoppers save **two or more of the same kind of thing** (kurtas, dresses, shirts) because they are still **hesitant**.  
+> The heart tap names why: quality, fit, compare, or an occasion. Those reasons become tabs that **help her decide**, not just file the pile.  
+> Same-type saves sit in **Compare** (category + article, trigger at 2+, cap 5). Price is a fact on the card. Dead SKUs stay in-app, never a push.
 
-Companion jobs (already in the prototype, still required): remember *why* they saved (without treating a sale as the reason), ping when **their size** is back, remind dated occasions, clean dead SKUs in-app, and let 18–24 mute alerts.
+Companion jobs: **Quality & trust** (reviews, fabric, photos of this type), **My size** (will it fit, from past buys — not stock watch), **Occasion** (when will I wear it), **No longer available**.
 
 ---
 
@@ -27,9 +27,9 @@ Companion jobs (already in the prototype, still required): remember *why* they s
 | Shopping Style | Planned, occasion-driven |
 | Wishlist Size | 2–50 items (intentional saves) |
 | Revisit Frequency | Weekly |
-| Why They Wishlist | Same-type shortlists to compare; upcoming occasions; waiting for **their** size |
-| Primary Trigger to Buy | “I can finally see the difference” + occasion deadline + size back |
-| Pain with Wishlist | Saves three kurtas / dresses and still cannot compare them; intent fades; size restock is silent |
+| Why They Wishlist | Same-type shortlists to compare; quality doubt; will it fit; upcoming occasions |
+| Primary Trigger to Buy | “I can see quality / fit / the difference” + occasion date |
+| Pain with Wishlist | Saves three kurtas and still cannot compare; quality and fit stay unanswered; occasion is a pile name |
 | Representative Users | Prototype: **Sujata**, **Priya**. Research: Ragamayi, Snehi, Touqeer |
 
 **Key verbatims (research):**
@@ -62,11 +62,12 @@ Companion jobs (already in the prototype, still required): remember *why* they s
 
 | ID | Priority | Pain Point | Who Feels It | Evidence |
 |---|---|---|---|---|
-| **PP-CMP** | **P0 (primary)** | Same-kind saves never get a compare surface. List is grouped by save-reason, not garment type. | Both; planners first | Product cut: type clusters + comparison cards |
-| PP3 | P0 companion | No memory of why an item was saved | Both | Snehi; 18–24 forget saves quickly |
-| PP2 | P0 companion | No ping when the **saved size** restocks | 25–35 | Snehi; Touqeer lost a purchase |
+| **PP-CMP** | **P0 (primary)** | Same-kind saves never get a compare surface. | Both; planners first | Type clusters + comparison cards |
+| **PP-Q** | P0 companion | Saved to check quality — tab shows the same empty card | 25–35 | Quality & trust cluster (199) |
+| **PP-FIT** | P0 companion | “Will this fit me?” answered as stock watch, not past buys | 25–35 | Fit (178); My size judges from orders |
+| PP3 | P0 companion | No memory of why an item was saved | Both | Heart sheet + tabs |
 | PP4 | P0 companion | Dead / discontinued items sit forever | 25–35 | Ragamayi |
-| PP5 | P0 guardrail | Notification overload → app avoidance | 18–24 | Candidate 1 |
+| PP5 | P0 guardrail | Notification overload → app avoidance | 18–24 | Shopper UI has **no inbox**; F5 never a push |
 
 ### Explicitly **not** a save-reason in this MVP
 
@@ -84,22 +85,24 @@ Companion jobs (already in the prototype, still required): remember *why* they s
 |---|---|---|
 | **F-CMP: Type clusters + comparison cards** | PP-CMP | **P0 primary** |
 | F1: Context tag on save | PP3 | P0 companion |
-| F3: Size / restock push | PP2 | P0 companion |
-| F4: Occasion reminder push | PP3 + deadline | P0 companion |
+| F-Q: Quality & trust tab | PP-Q | P0 companion |
+| F-FIT: Fit from past buys | PP-FIT | P0 companion |
+| F4: Occasion date + tab | PP3 + deadline | P0 companion |
 | F5: Dead item in-app nudge | PP4 | P0 companion |
-| F6: Notification preference settings | PP5 | P0 guardrail |
+
+Shopper chrome has **no notification inbox** and **no alert-settings ⚙️**. Restock / occasion workers may exist on the API; they are not what the tabs claim.
 
 ### Tag set (F1) — what the shopper may pick
 
-| Tag | Chip / tab | Push? |
-|---|---|---|
-| `occasion` | Occasion | F4 if a date is set |
-| `size_wait` | My size | F3 if size was OOS **at save** |
-| `styling_unsure` | How it looks on me | None — customer photos + reviews on the card / PDP |
-| `bookmarking` | Bookmark | None |
-| `null` | (no chip) | Skip / timeout |
+| Tag | Sheet label | Tab | What the tab does |
+|---|---|---|---|
+| `quality_trust` | Check quality first | Quality & trust | Fabric, star rating, **N reviews**, comments that say quality is good, **2 real photos**. No Compare link. No fake `x/10`. |
+| `size_wait` | Check the fit | My size | **Will it fit**, from past buys (usual size, returns, runs small/large). **Not** “watching size” / availability. |
+| `compare` | Compare | Compare | Same type, 2–5, side by side |
+| `occasion` | Upcoming Occasion | Occasion | Named occasion + optional date + countdown. Date picker only after this tag. |
+| `null` | Skip | — | No chip |
 
-`price_drop` is **not** offered on the sheet. It may exist on the type for older rows; it must not appear as a tab or save option.
+`price_drop`, `bookmarking`, and `styling_unsure` are **not** offered. `price_drop` may exist on the type for older rows.
 
 ### ❌ OUT OF SCOPE — this slice
 
@@ -107,7 +110,9 @@ Companion jobs (already in the prototype, still required): remember *why* they s
 - Share-link / social wishlist
 - Duplicate-detection banner as a separate product
 - Wishlist folders
-- AI size/fit as a score
+- AI size/fit as a **score** (87%, 8.4/10). Fit is a **sentence** from past buys.
+- Customer-photo quality tool that crops a different SKU’s PDP
+- Shopper notification inbox / lock-screen chrome
 - Mixing **Women dresses** with **Kids frocks** (or any cross-`SiteCat` mix)
 - Price-drop save tag or price-drop push
 - Discovery-engine dashboard
@@ -123,7 +128,7 @@ Companion jobs (already in the prototype, still required): remember *why* they s
 **Solves:** PP-CMP — the shortlist never becomes a decision
 
 #### User Story
-> As a shopper, when I have saved two or more of the **same article in the same site category**, I want them side by side so I can pick one without scrolling a list grouped by occasion vs size vs styling.
+> As a shopper, when I have saved two or more of the **same article in the same site category**, I want them side by side so I can pick one — price, stars, and a quality note — without scrolling a pile grouped only by save-reason.
 
 #### Clustering
 
@@ -144,13 +149,14 @@ Companion jobs (already in the prototype, still required): remember *why* they s
 
 | Field | Rule |
 |---|---|
-| Colour | From the piece (title / pictured colour) — not a generic palette |
-| Design | Cut / print / silhouette of **this** SKU |
-| On-body photo | **This SKU**. Libas uses dedicated customer photos. Others use this product’s image — never a different dress or saree passed off as this one |
-| Review | Stars + comment **without** “true to size” |
-| Quality | Fabric or a short review line. **No fake 8.4/10** |
+| Photo | Catalog image of **this** SKU |
 | Price | Current INR. Flag **Lowest here** among the visible cards. Price is a fact, not a save-reason |
-| Stock / size | In stock + saved size, or watching size / OOS. Discontinued never appears |
+| Stars | Customer average + review count. **No** “true to size” |
+| Quality note | Short fabric / cut line for this SKU. **No fake 8.4/10** |
+| Buy this | Optional pick from past buys — a sentence, not a score |
+| Stock | In stock → MOVE TO BAG. OOS → disabled. Discontinued never appears |
+
+Colour, design, and on-body are **not** separate columns. Those jobs live on **Quality & trust**.
 
 #### Controls
 
@@ -174,65 +180,89 @@ Companion jobs (already in the prototype, still required): remember *why* they s
 **Solves:** PP3
 
 #### User Story
-> As a user, when I add an item to my wishlist, I want to tag my intent so that when I come back, I know why it's there.
+> As a user, when I add an item to my wishlist, I want to name **why** I saved it so the matching tab can help me decide — quality, fit, compare, or an occasion.
 
 #### Flow
 ```
-User taps "Add to Wishlist" / heart
+User taps heart
         ↓
-Sheet: "Saving this for…?"
+Sheet: "Saving this for…?"   (2×2)
+  [ 🔎 Check quality first ]
+  [ 📦 Check the fit ]
+  [ 🆚 Compare ]
   [ 🎉 Upcoming Occasion ]
-  [ 📦 Waiting for My Size ]
-  [ ✨ Not sure how it will look on me ]
-  [ 🤔 Just Bookmarking ]
         ↓
-User taps a tag  →  Tag saved on wishlist card
-User Skip / dismiss  →  Item saves with no tag
+Occasion → "When is the occasion?"  → Save date / Skip date
+Other tags → save immediately
+Skip / dismiss → tag: null
 ```
+
+Auto-dismiss of the add sheet is **paused** while the date step is open.
 
 #### UI Details
 
 - Sheet is non-blocking; Skip is first-class.
-- Occasion → optional date picker (feeds F4).
+- Date picker **only** after Upcoming Occasion. Skip date is allowed (`occasionDate: null`).
 - Chip on card. Long-press / tap chip → edit.
-- Bookmark does **not** show on the home “From your wishlist” rail (intentional saves only).
-- `styling_unsure` unlocks customer photos + reviews for **that** SKU (no TTS line).
+- `bookmarking`, `styling_unsure`, and `price_drop` are **not** on the sheet.
 
 #### Data (prototype)
 
 ```typescript
-tag: 'occasion' | 'size_wait' | 'styling_unsure' | 'bookmarking' | null
-occasionDate: string | null
+tag: 'quality_trust' | 'size_wait' | 'compare' | 'occasion' | null
+occasionDate: string | null   // only asked after occasion
 ```
+
+`isLiveTag` = those four values. Older rows may still hold `price_drop` / `bookmarking` on the type.
 
 #### Acceptance Criteria
 
-- [ ] Four tags visible; **no** “Waiting for Price Drop”.
+- [ ] Four live tags; **no** Price Drop, Bookmark, or How it looks.
 - [ ] Skip → `tag: null`, no re-prompt.
-- [ ] Occasion date picker only after Occasion.
-- [ ] Chip editable; `styling_unsure` shows photos of this piece.
+- [ ] Date picker only after Occasion; Skip date leaves `occasionDate: null`.
+- [ ] Chip editable.
 
 ---
 
-### F3: Size / Restock Push Notification
-**Solves:** PP2
+### F-Q: Quality & trust tab
+**Solves:** PP-Q
 
-- Register a size watch **only if** the selected size is OOS **at save**.
-- Fire when **that exact size** is in stock. Other sizes silent.
-- Deep-link wishlist/PDP with that size. Do not re-fire after purchase.
-- Respects F6 Size Back-in-Stock.
+Not a filter. `QualityCard` uses `qualityBrief`:
+
+- Fabric from catalog / title
+- Star rating + **N reviews** (seed ratings, not an invented `x/10`)
+- 2–3 comments that say **quality is good** (product-specific)
+- **Two photos**: dedicated Libas UGC if ≥2 exist; else catalog + a **type-matched** real photo. Never a cropped PDP of a different SKU pretending to be UGC
+- MOVE TO BAG
+- **No Compare link** on this tab
 
 ---
 
-### F4: Occasion Reminder Notification
+### F-FIT: My size tab — fit from past buys
+**Solves:** PP-FIT
+
+The tab answers **will this size fit you**, not “is it in stock.”
+
+- Domain: `fitFromPastBuys` (`src/shopper/domain/fitJudgement.ts`)
+- Verdicts: `will_fit` · `may_not_fit` · `unsure`
+- Compares saved size vs usual size from past purchases of the **same article**; also review `runs_small` / `runs_large` and same-SKU returns
+- Example: Biba Anarkali saved **S**; Sujata bought **M** Anouk kurta → “This may not fit you… smaller than you usually buy”
+- `SizeFitCard`: no “Watching size”, “Out of stock”, or restock copy
+- Bucket is **only** `tag === size_wait` (not every OOS row)
+- Heart hint: “From your past buys — whether this size should fit you”
+
+Size-watch / exact-size restock may still exist on the **API** for OOS-at-save. That is not what the My size tab claims.
+
+---
+
+### F4: Occasion tab (+ optional dated reminder)
 **Solves:** PP3 + deadline
 
-- Requires `occasion` **and** `occasionDate`.
-- Fires when `days_until_occasionDate <= 7` and the date has not passed.
-- Same date → **one** batched notification.
-- Open → wishlist filtered to those occasion items.
-- Date passed unused → clear occasion tag; item stays; no late ping.
-- Respects F6 Occasion Reminders.
+- Live save reason and tab: **when will I wear it?**
+- `OccasionCard`: occasion label (Friend's Wedding / festive / night out), countdown, date field, MOVE TO BAG
+- Date is **optional**. F4 worker (if run) requires `occasion` **and** `occasionDate`, fires when `days_until ≤ 7`, batches same date
+- Date passed unused → clear occasion tag; item stays; no late ping
+- Shopper UI has **no inbox** for the ping
 
 ---
 
@@ -246,21 +276,12 @@ occasionDate: string | null
 
 ---
 
-### F6: Notification Preference Settings
-**Solves:** PP5
+### F3 / F6 — backend only (not shopper chrome)
 
-```
-Wishlist Notifications
-────────────────────────────────────────
-💸 Price Drop Alerts          [ toggle — unused for send in this slice ]
-📦 Size Back-in-Stock         [ ON  ● ]
-🎉 Occasion Reminders         [ ON  ● ]
-```
+Shopper wishlist has **no notification inbox** and **no alert-settings ⚙️**. Prefs and restock workers may exist on the store / API. They are not a shopper job in this prototype.
 
-- ⚙️ on wishlist header. Defaults ON (Kabir seed may start with types off).
-- OFF stops that type immediately.
-- F5 has no toggle.
-- Price Drop toggle may remain in chrome so 18–24 can keep it off; **this MVP does not send F2**.
+- F3 (if run): watch only if saved size was OOS **at save**; exact size; no re-fire after purchase.
+- F6 (if used): OFF stops F3/F4 send. F5 has no toggle. F2 is never sent.
 
 ---
 
@@ -268,14 +289,14 @@ Wishlist Notifications
 
 ```
 Wishlist
-├── Header: title + count + ⚙️
+├── Header: title + count   (no ⚙️, no inbox)
 ├── Hint: same types sit together so you can compare
-├── Tabs: All | Compare | Occasion | My size | How it looks on me | Saved | No longer available
-├── All:
-│   ├── Compare banners (one per cluster)
-│   ├── Groups by save-reason + dead nudge
-│   └── Cards: image, brand, name, price, tag chip, stock, MOVE TO BAG
-└── Compare tab → cluster list → Compare page (cards)
+├── Tabs: All | Compare | Quality & trust | My size | Occasion | No longer available
+├── All: compare banners + groups by live reason + dead nudge
+├── Quality & trust → QualityCard (fabric, stars, N reviews, quotes, 2 photos)
+├── My size → SizeFitCard (fit sentence from past buys)
+├── Occasion → OccasionCard (label, countdown, date)
+└── Compare tab → cluster list → Compare page (price, stars, quality note, Lowest here, Buy this, Not this)
 ```
 
 ---
@@ -308,9 +329,12 @@ Full catalog: [EdgeCases_Wishlist_Reengagement_MVP.md](./EdgeCases_Wishlist_Reen
 | Discontinued in the list | F5 only; not in compare |
 | Kids frock + Women dress | Separate keys; no mix |
 | Skip tag | `null`, no re-prompt |
-| Restock other size | No F3 |
-| Same occasion date, two SKUs | One F4 |
-| OS notifications off | F5 still shows |
+| Occasion without date | Tab still shows; F4 will not fire |
+| My size | Fit sentence, not “watching size” |
+| Quality photos | This type / dedicated UGC — never a different SKU’s PDP as UGC |
+| Restock other size | No F3 (API) |
+| Same occasion date, two SKUs | One F4 (API) |
+| Shopper inbox / ⚙️ | **Absent** |
 | Demo checkout | No live conversion % |
 
 ---
@@ -319,13 +343,14 @@ Full catalog: [EdgeCases_Wishlist_Reengagement_MVP.md](./EdgeCases_Wishlist_Reen
 
 | Feature | Done when |
 |---|---|
-| F-CMP | Clusters at 2+, cap 5, cards with required fields, in-stock filter, Not this, bag, no TTS / fake score, no category mix, dead excluded |
-| F1 | Four tags (no price-drop), skip, chip, edit, styling photos of this SKU |
-| F3 | Exact saved size; F6 respected |
-| F4 | Date required, ≤7 days, batched, filtered list |
-| F5 | In-app top/tab, Similar + Remove, never push, not in compare |
-| F6 | Toggles, ⚙️, no F5 push toggle |
-| Honesty | No invented conversion % |
+| F-CMP | Clusters at 2+, cap 5, price / stars / quality note / Lowest here / Buy this / Not this / bag, no TTS / fake score, no category mix, dead excluded |
+| F1 | Four live tags (quality, fit, compare, occasion); skip; chip; edit; date only after Occasion |
+| F-Q | Quality tab shows fabric, stars, N reviews, quality quotes, 2 real photos; no Compare CTA; no fake `x/10` |
+| F-FIT | My size shows a fit sentence from past buys; not stock watch; bucket is `size_wait` only |
+| F4 | Occasion tab + optional date; skip date allowed; API batch ≤7 days if date set |
+| F5 | In-app tab, Similar + Remove, never push, not in compare |
+| Chrome | No shopper inbox; no wishlist ⚙️ |
+| Honesty | No invented conversion %, no Groq/LLM fit score, no 87% |
 
 ---
 
@@ -350,13 +375,23 @@ A filled 15% on this prototype is a **fail**.
 
 | Screen | Type |
 |---|---|
-| Wishlist (tabs + banners) | Modified |
-| Compare page | **New** |
-| Tag sheet | Existing |
-| Prefs (⚙️) | Existing |
-| Dead nudge | Existing |
+| Wishlist (6 tabs + banners) | Live |
+| Quality / My size / Occasion cards | Live |
+| Compare page | Live |
+| Tag sheet (2×2) | Live |
+| Dead nudge | Live |
+| Prefs / inbox | **Not shopper-facing** |
 | PDP / Bag | Existing |
+
+**Stack:** Vite `/` → `src/shopper/`. Local often `http://127.0.0.1:5174/` or `5175`. Production: https://myntramvp.vercel.app/. Code: https://github.com/sujatabanerjee16/MyntraMVP. Personas: **Sujata** (default WOMEN), Priya, Kabir (GENZ). Home cats: MEN · WOMEN · KIDS · BEAUTY · GENZ.
 
 ---
 
-*Comparison MVP v2.0 | Aligns docs with the shopper prototype. Research still 6 interviews + 2 surveys.*
+## Changelog
+
+| Version | Notes |
+|---|---|
+| 3.0 | Live reasons: quality, fit, compare, occasion. Decision tabs. Compare cards without colour/design/on-body columns. No shopper inbox / ⚙️. |
+| 2.0 | Comparison MVP (superseded tag set) |
+
+*Comparison MVP v3.0 | Aligns docs with the live shopper prototype. Research still 6 interviews + 2 surveys. Do not put a full last name on the research slide.*

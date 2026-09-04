@@ -3,9 +3,10 @@
 **Source of truth:** [Architecture_Wishlist_Reengagement_MVP.md](./Architecture_Wishlist_Reengagement_MVP.md)  
 **PRD:** [ProblemStatement_Solution_MVP.md](./ProblemStatement_Solution_MVP.md)
 
-This slice = **F-CMP type clusters + comparison cards**.  
-Companions already in the prototype: **F1 tags** (no price-drop choice), **F3 restock**, **F4 occasion**, **F5 dead in-app**, **F6 prefs**.  
-Not the discovery dashboard. Not stylist-among-saves. Not share-link. Not a price-drop save tag or push.
+This slice = **help hesitant buyers decide**: Compare (F-CMP) plus **Quality & trust**, **My size** (fit from past buys), and **Occasion**.  
+Live save reasons: `quality_trust` · `size_wait` · `compare` · `occasion` · `null`.  
+Shopper chrome has **no inbox** and **no alert ⚙️**.  
+Not the discovery dashboard. Not Bookmark / How it looks. Not a price-drop save tag or push. Not a fake fit score.
 
 ---
 
@@ -17,45 +18,47 @@ Not the discovery dashboard. Not stylist-among-saves. Not share-link. Not a pric
 | Engineering | Work + contracts |
 | QA | Demo scripts + [EdgeCases](./EdgeCases_Wishlist_Reengagement_MVP.md) |
 
-**Stack (this repo):** Vite + React + TypeScript. Shopper entry: `/` → `src/shopper/` (dev often `http://127.0.0.1:5174/`). In-memory store + cron buttons for proto. No Groq/BGE.
+**Stack (this repo):** Vite + React + TypeScript. Shopper entry: `/` → `src/shopper/` (dev often `http://127.0.0.1:5174/` or `5175`). Production: https://myntramvp.vercel.app/. In-memory store. No Groq/BGE.
 
 ---
 
 ## 1. Roadmap
 
 ```
-P0–P6  Companions (item model, tags, prefs, restock, occasion, dead)
-  → P7 F-CMP clusters + compare page     ← current slice
+P0–P6  Companions (item model, tags, dead; prefs/restock API-only)
+  → P7 F-CMP clusters + compare page
+  → P8 Quality / fit / Occasion decision tabs     ← live
 ```
 
 Price-drop **push** (old P3 / F2) is **not** implemented as a send. `runPriceCheck` / `dropPrice` must stay at `sent: 0`.
 
 | Phase | Feature | Depends | Status in this repo |
 |-------|---------|---------|---------------------|
-| **P0** | Schema, seed, wishlist chrome, ⚙️ | — | Done |
-| **P1** | F1 tag sheet (four tags, no price-drop) | P0 | Done |
-| **P2** | F6 toggles | P0 | Done |
+| **P0** | Schema, seed, wishlist chrome (no ⚙️) | — | Done |
+| **P1** | F1 tag sheet (quality / fit / compare / occasion) | P0 | Done |
+| **P2** | F6 toggles | P0 | API only — **not shopper chrome** |
 | **P3** | F2 price-drop send | — | **Out** — do not send |
-| **P4** | F3 exact-size restock | P2 | Done |
-| **P5** | F4 dated occasion batch | P1, P2 | Done |
+| **P4** | F3 exact-size restock | P2 | API only — My size tab is **fit**, not restock |
+| **P5** | F4 dated occasion | P1 | Done — tab + optional date |
 | **P6** | F5 dead in-app | P0 | Done |
-| **P7** | **F-CMP compare** | P0 | **This MVP** |
+| **P7** | **F-CMP compare** | P0 | Done |
+| **P8** | Quality / fit / Occasion **cards** | P1, P7 | **Live** |
 
-**Minimum demo for this slice:** P7 on Sujata (dresses + kurtas), Kabir (shirts), in-stock filter, bag from compare. Companions still demoable.
+**Minimum demo:** Sujata — Compare dresses + kurtas; Quality tab (fabric, stars, quotes, 2 photos); My size (Biba S vs usual M); Occasion date. Kabir — shirts. No inbox.
 
 ---
 
 ## 2. Cross-cutting rules
 
-1. Skip tag → `null`. No re-prompt. No price-drop tag on the sheet.
-2. F3/F4 respect F6 immediately.
+1. Skip tag → `null`. No re-prompt. No price-drop / bookmark / how-it-looks on the sheet.
+2. Shopper UI has **no inbox** and **no ⚙️**.
 3. F5 is **never** a push. Discontinued rows **never** enter compare.
-4. Restock: exact saved size; watch only if OOS **at save**.
-5. Occasion: date required; batch same date; no ping after date passed.
+4. My size tab: fit from past buys. Not “watching size.”
+5. Occasion: date optional; date picker only after Occasion; Skip date allowed.
 6. Compare: `{SiteCat}:{article}`, min 2, max 5, no cross-category mix.
-7. Compare cards: this SKU’s photos; reviews without “true to size”; quality without a fake x/10; price as a fact.
-8. Do not show live wishlist→cart % from demo checkout.
-9. Each phase ends with a **demo script**.
+7. Compare cards: price, stars, quality note, Lowest here, Buy this, Not this. No colour/design/on-body columns. No TTS / fake x/10.
+8. Quality photos: dedicated UGC or type-matched real photos — never a different SKU’s PDP as UGC.
+9. Do not show live wishlist→cart % from demo checkout.
 
 ---
 
@@ -67,7 +70,7 @@ Price-drop **push** (old P3 / F2) is **not** implemented as a send. `runPriceChe
 
 - [x] Fields: `productId`, prices, `selectedSize`, `tag`, `occasionDate`, `savedAt`, `stockStatus`, `oosSince`, `sizeWatch`.
 - [x] Seed personas: Sujata, Priya, Kabir.
-- [x] Wishlist chrome + ⚙️.
+- [x] Wishlist chrome **without** ⚙️ / inbox.
 - [x] Measurement: wishlist→cart **unavailable**.
 
 ### Exit / demo
@@ -80,27 +83,27 @@ Open `/`. Wishlist renders. No fake 15%.
 
 ### Work
 
-- [x] Sheet: Occasion, My size, How it looks on me, Bookmark. **No** Waiting for Price Drop.
-- [x] Skip → `null`. Occasion date optional.
-- [x] Chip + edit. `styling_unsure` → photos of this SKU, reviews without TTS.
+- [x] Sheet 2×2: Check quality first, Check the fit, Compare, Upcoming Occasion. **No** Price Drop, Bookmark, or How it looks.
+- [x] Skip → `null`. Occasion date **only** after Occasion; Skip date allowed.
+- [x] Chip + edit.
 
 ### Demo
 
-1. Heart a catalog item → four tags, no price-drop.
-2. Skip → no chip. Bookmark → chip only after opening wishlist (home rail hides Bookmark).
+1. Heart a catalog item → four live tags, no price-drop.
+2. Skip → no chip. Occasion → date step → Skip date still saves `occasion`.
 
 ---
 
-## Phase 2 — F6 Prefs *(shipped)*
+## Phase 2 — F6 Prefs *(API only — not shopper chrome)*
 
 ### Work
 
-- [x] Price Drop / Size Back / Occasion toggles. ⚙️ on wishlist.
-- [x] OFF stops F3/F4. Price Drop send is already disabled.
+- [x] Prefs may exist on the store. Wishlist **must not** show ⚙️ or an inbox.
+- [x] Price Drop send is disabled.
 
 ### Demo
 
-⚙️ → turn Size Back off → restock control stays silent.
+Open wishlist as Sujata. Confirm **no** gear icon and **no** notification inbox.
 
 ---
 
@@ -126,7 +129,9 @@ Do **not** add a price-drop tag or push as part of P7.
 
 ### Demo
 
-Two items, same date → one batched ping → wishlist filtered to occasion.
+1. Heart → Upcoming Occasion → pick a date **or** Skip date.
+2. Occasion tab: label + countdown (or “When will you wear it?”).
+3. Seed Flared Ethnic Maxi / Pleated Party Dress tagged `occasion` with dates after the demo clock so the ≤7-day worker does not fire.
 
 ---
 
@@ -150,7 +155,7 @@ Anouk discontinued on **No longer available**. Bell has no dead-item message. Ro
 - [x] Distinct catalog images within a cluster.
 - [x] API: `getCompareClusters`, `getCompare(key, inStockOnly)`.
 - [x] HTTP: `GET /wishlist/compare`, `GET /wishlist/compare/:key?inStock=1` (registered before `/:id`).
-- [x] UI: Compare tab, All-tab banners, Compare page (colour, design, on-body, review, quality, price + Lowest here, stock).
+- [x] UI: Compare tab, All-tab banners, Compare page (price, stars, quality note, Lowest here, Buy this, Not this, stock).
 - [x] In stock only; Not this (session hide); MOVE TO BAG; PDP.
 - [x] Tests: domain + API + UI flow.
 - [ ] Browser pass: Sujata dresses **and** kurtas; Kabir shirts; filter; Not this until fewer than 2 left; bag.
@@ -168,39 +173,61 @@ Anouk discontinued on **No longer available**. Bell has no dead-item message. Ro
 1. Open `/` as **Sujata** → Wishlist.
 2. All tab shows banners e.g. **Compare 3 dresses in Women** and **Compare N kurtas in Women**.
 3. Compare tab lists the same clusters.
-4. Open dresses: cards show Colour / Design / On-body / Review / Quality / Stock. No “True to size”. No 8.4/10.
+4. Open dresses: cards show **price, stars, quality note, Lowest here**. **Buy this** may appear. **Not this** / MOVE TO BAG. No “True to size”. No 8.4/10. No colour/design/on-body columns.
 5. Check **In stock only**. **Not this** on one card. **MOVE TO BAG** on another → Shopping Bag.
 6. Back → open kurtas. Discontinued Anouk is not there (it stays under No longer available).
 7. Profile → **Kabir** → Wishlist → Compare shirts.
 
 ---
 
-## 3. What we will not implement in P7
+## Phase 8 — Quality / fit / Occasion cards *(live)*
+
+### Work
+
+- [x] `qualityBrief` + `QualityCard` on Quality & trust. No Compare CTA.
+- [x] `fitFromPastBuys` + `SizeFitCard` on My size. No watching-size copy.
+- [x] `occasionBrief` + `OccasionCard` on Occasion.
+- [x] Tabs CSS: 6 columns.
+
+### Demo
+
+1. Wishlist → **Quality & trust**: fabric, stars, N reviews, quality quotes, two photos. No Compare link.
+2. **My size**: Biba S vs usual M → “may not fit” sentence. No “Watching size”.
+3. **Occasion**: named occasion + date field.
+
+---
+
+## 3. What we will not implement in P7/P8
 
 - Discovery dashboard / Ask AI
-- Stylist-among-saves, share-link, folders, fit AI score
+- Bookmark / How it looks as live chips
+- Shopper inbox or wishlist ⚙️
+- Stylist-among-saves, share-link, folders, fit **score**
 - Price-drop tag or push
 - Push for dead items
 - Live wishlist→cart from seed checkout
 - Mixing site categories to “fill” a cluster
+- Groq / LLM fit cards
 
 ---
 
 ## 4. Test matrix
 
-| Case | P1 | P4 | P5 | P6 | P7 |
+| Case | P1 | P5 | P6 | P7 | P8 |
 |------|----|----|----|----|-----|
 | Skip tag → null | x | | | | |
-| No price-drop tag / send | x | | | | x |
-| Exact size only | | x | | | |
-| Occasion batch + date required | | | x | | |
-| Dead in-app only; not in compare | | | | x | x |
-| Cluster ≥2, cap 5 | | | | | x |
-| No category mix | | | | | x |
-| In-stock filter | | | | | x |
-| No TTS / fake score | | | | | x |
-| Compare → bag | | | | | x |
-| No fake conversion | x | | | x | x |
+| No price-drop / bookmark / how-it-looks | x | | | | x |
+| Date only after Occasion; Skip date OK | x | x | | | |
+| Dead in-app only; not in compare | | | x | x | |
+| Cluster ≥2, cap 5 | | | | x | |
+| No category mix | | | | x | |
+| Compare cards: price / stars / note / Lowest here | | | | x | |
+| No TTS / fake score | | | | x | x |
+| Compare → bag | | | | x | |
+| Quality: fabric, stars, quotes, 2 photos; no Compare CTA | | | | | x |
+| My size: fit sentence, not watching size | | | | | x |
+| No shopper inbox / ⚙️ | x | | | | x |
+| No fake conversion | x | | x | x | x |
 
 ---
 
@@ -209,11 +236,9 @@ Anouk discontinued on **No longer available**. Bell has no dead-item message. Ro
 | Control | Phase |
 |---------|--------|
 | Add to wishlist + tag sheet | P1 |
-| ⚙️ prefs | P2 |
 | Drop price on seed SKU | P3 — updates price **only**, no ping |
-| Restock saved size / other size | P4 |
 | Advance clock (occasion / 60d OOS) | P5 / P6 |
-| Persona switch (Sujata / Priya / Kabir) | P7 demo |
+| Persona switch (Sujata / Priya / Kabir) | P7 / P8 demo |
 | Reset demo | P0 |
 
 ---
@@ -233,8 +258,8 @@ Anouk discontinued on **No longer available**. Bell has no dead-item message. Ro
 
 | Sprint | Focus |
 |--------|--------|
-| Done | P0–P2, P4–P6, F2 send disabled |
-| This | P7 compare + doc alignment |
+| Done | P0–P7, F2 send disabled, no shopper inbox |
+| This | P8 Quality / fit / Occasion cards + doc alignment |
 
 ---
 
@@ -242,12 +267,11 @@ Anouk discontinued on **No longer available**. Bell has no dead-item message. Ro
 
 Matches PRD § Definition of Done:
 
-- [x] F1 four tags, chip, editable, graceful skip; no price-drop option
-- [x] F3 exact size, no re-fire after purchase
-- [x] F4 batches, 7 days before, filters wishlist
+- [x] F1 four live tags, chip, editable, graceful skip; date only after Occasion; no price-drop / bookmark / how-it-looks
+- [x] F-Q Quality cards; F-FIT fit from past buys; Occasion cards
 - [x] F5 in-app, Similar + Remove, not a push
-- [x] F6 toggles, ⚙️
-- [ ] F-CMP clusters + cards + filter + Not this + bag; no mix; dead excluded; honest reviews/quality
-- [ ] EdgeCases S0/S1 green for P7 (`EC-COMP-*`)
+- [x] No shopper inbox / ⚙️
+- [x] F-CMP clusters + cards (price / stars / note / Lowest here / Buy this / Not this) + filter + bag; no mix; dead excluded
+- [ ] EdgeCases S0/S1 green for P7/P8 (`EC-COMP-*`, `EC-QTY-*`, `EC-FIT-*`)
 - [ ] No invented conversion % in the UI
-- [ ] Five `Doc/*.md` files describe **this** product, not “compare → MVP2”
+- [ ] Five `Doc/*.md` files describe **this** product

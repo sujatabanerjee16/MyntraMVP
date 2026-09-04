@@ -1,9 +1,9 @@
 # Myntra Wishlist — Evaluation (Comparison MVP)
 
-**Sources:** [ProblemStatement_Solution_MVP.md](./ProblemStatement_Solution_MVP.md); [Architecture_Wishlist_Reengagement_MVP.md](./Architecture_Wishlist_Reengagement_MVP.md) §12, §14; [Implementation_Wishlist_Reengagement_MVP.md](./Implementation_Wishlist_Reengagement_MVP.md) P7  
+**Sources:** [ProblemStatement_Solution_MVP.md](./ProblemStatement_Solution_MVP.md) v3.0; [Architecture_Wishlist_Reengagement_MVP.md](./Architecture_Wishlist_Reengagement_MVP.md); [Implementation_Wishlist_Reengagement_MVP.md](./Implementation_Wishlist_Reengagement_MVP.md) P7–P8  
 **QA:** [EdgeCases_Wishlist_Reengagement_MVP.md](./EdgeCases_Wishlist_Reengagement_MVP.md)
 
-This file defines *how we know this MVP worked*. It scores the **shopper** product with **compare as the primary outcome**. It does **not** score the discovery-engine dashboard. It does **not** treat a painted 15% cart rate as success.
+This file defines *how we know this MVP worked*. It scores the **shopper** product: **compare** plus **quality, fit, and occasion** decision tabs. It does **not** score the discovery-engine dashboard. It does **not** treat a painted 15% cart rate as success.
 
 **Supersedes:** discovery-engine eval (cite-or-refuse, G-COMP, D9-as-success); UGC + one-shot price-drop eval; “F2 CTR is the ship metric.”
 
@@ -11,15 +11,15 @@ This file defines *how we know this MVP worked*. It scores the **shopper** produ
 
 ## 0. Evaluation intent
 
-This MVP exists so a shopper who saved **two or more of the same type** can **see them together and pick**. Tags, restock, occasion, and dead-item cleanup support that decision — they are not the north star anymore.
+This MVP exists so a **hesitant** shopper can **decide**: compare same-type saves, check quality, judge fit from past buys, and see when she will wear it.
 
 ```
-Save same-type items
-  → cluster (category + article)
-  → open compare cards
-  → filter in-stock / hide “Not this”
+Heart tap → quality | fit | compare | occasion
+  → matching tab helps her decide
+  → same-type saves also cluster (category + article)
+  → compare cards: price, stars, quality note, Lowest here
   → bag one
-  → without fake scores, wrong-SKU photos, or a conversion %
+  → without fake scores, wrong-SKU UGC, inbox blast, or a conversion %
 ```
 
 **A filled wishlist→cart % from demo checkout is a fail** until `shop.internal_orders` is on.
@@ -32,8 +32,9 @@ Save same-type items
 | Price-drop CTR | F2 is not sent in this slice |
 | Discovery Ask AI citation rate | Wrong product |
 | UGC tap CTR as the ship metric | Supporting, not the north star |
-| Raw notification volume | 18–24 harm |
-| Fake quality 8.4/10 | Honesty fail |
+| Raw notification volume | 18–24 harm — shopper has **no inbox** |
+| Fake quality 8.4/10 or 87% fit | Honesty fail |
+| Groq / LLM fit cards | Not in this product |
 
 ---
 
@@ -43,14 +44,14 @@ A later layer does not skip an earlier fail.
 
 | Layer | When | Question | Pass |
 |-------|------|----------|------|
-| **L0 Constraint** | Every review | No fake conversion? F5 never push? No F2 send? Photos are this SKU? No TTS / fake score? | EdgeCases S0 green |
+| **L0 Constraint** | Every review | No fake conversion? F5 never push? No F2 send? No inbox / ⚙️? Photos honest? No TTS / fake score / 87%? | EdgeCases S0 green |
 | **L1 Compare adoption** | P7 | Do clusters appear? Do people open them? | CMP-SHOWN, CMP-OPEN |
-| **L2 Decision quality** | P7 | Right cluster, filter, hide, bag? | EC-COMP battery |
-| **L3 Companion + guardrail** | P1–P6 | Tags skippable? Restock exact? Occasion batched? 18–24 can mute? | F1/F3/F4/F6 |
+| **L2 Decision quality** | P7–P8 | Right cluster + Quality / fit / Occasion cards help her pick? | EC-COMP, EC-QTY, EC-FIT |
+| **L3 Companion + guardrail** | P1–P6 | Tags skippable? Occasion date optional? Dead never a push? | F1/F4/F5 |
 | **L4 Outcome** | Live cart join | Wishlist → cart; compare→bag as explanation | Real events only |
 
-**Minimum proto bar:** L0 + P7 demo (Sujata dresses + kurtas, Kabir shirts, filter, bag) + companions still demoable.  
-**Ship bar:** L0 + L2 battery + L1 counts instrumented + L3 opt-out health. L4 waits for join.
+**Minimum proto bar:** L0 + P7/P8 demo (Sujata dresses + kurtas, Quality tab, My size fit sentence, Occasion, Kabir shirts, bag).  
+**Ship bar:** L0 + L2 battery + L1 counts instrumented. L4 waits for join.
 
 ---
 
@@ -59,15 +60,16 @@ A later layer does not skip an earlier fail.
 | # | Question | Layer | Evidence |
 |---|----------|-------|----------|
 | Q1 | Do ≥2 same-type saves become a cluster in the right category? | L1/L2 | `compareClusters` / UI banners |
-| Q2 | Does opening compare show honest cards (colour, design, this-SKU photo, review, quality, price, stock)? | L2 | Screenshot + EC-COMP-009–011 |
-| Q3 | Does in-stock filter hide watching / OOS? | L2 | EC-COMP-007 |
+| Q2 | Does opening compare show honest cards (price, stars, quality note, Lowest here, this-SKU photo)? | L2 | Screenshot + EC-COMP-009–011 |
+| Q3 | Does in-stock filter hide OOS? | L2 | EC-COMP-007 |
 | Q4 | Can they bag from compare? | L2 | CMP-BAG; bag screen |
 | Q5 | Is discontinued kept off compare? | L0/L2 | EC-COMP-002, EC-DEAD-007 |
 | Q6 | Are Women dresses kept off Kids frocks? | L2 | EC-COMP-003 |
-| Q7 | Do saves still get a usable why (or honest null)? | L3 | Tag distribution + skip |
-| Q8 | Does restock mean **their** size? | L3 | Size-watch vs send |
-| Q9 | Do occasion pings batch and stay dated? | L3 | F4 payload item count |
-| Q10 | Did we avoid blasting 18–24 (and avoid F2 entirely)? | L0/L3 | No price-drop inbox; OPT |
+| Q7 | Do saves still get a usable why (or honest null)? | L3 | Four live tags + skip |
+| Q8 | Does **Quality & trust** show fabric, stars, N reviews, quality quotes, and 2 real photos — with no Compare CTA? | L2 | EC-QTY-001–005 |
+| Q9 | Does **My size** judge fit from past buys (not stock watch)? | L2 | EC-FIT-001–005 |
+| Q10 | Does **Occasion** show when she’ll wear it, with date optional? | L2/L3 | Occasion tab + EC-TAG-005–006 |
+| Q11 | Did we avoid blasting 18–24 (no inbox, no F2)? | L0/L3 | No shopper inbox; G-PD |
 
 ---
 
@@ -99,7 +101,9 @@ Eval **fails** if CMP-BAG is replaced by a fake 15%.
 | **G-PD** | Any price-drop notification sent |
 | **G-TTS** | Compare or styling review shows “true to size” |
 | **G-SCORE** | Quality shown as `x/10` or similar invented rating |
-| **G-PHOTO** | On-body photo is a different SKU / category |
+| **G-PHOTO** | Quality / compare photo is a different SKU passed off as this one |
+| **G-INBOX** | Shopper wishlist shows an inbox or alert ⚙️ |
+| **G-FIT** | My size shows “Watching size” / restock / 87% instead of a fit sentence |
 | **G-MIX** | Cluster mixes `SiteCat` (e.g. WOMEN dress + KIDS frock) |
 | **G-DEAD** | Discontinued id appears in `itemIds` of a cluster |
 | **G-PREF** | F3/F4 sent while that toggle is OFF |
@@ -154,12 +158,14 @@ Automated (map to EdgeCases):
 | In-stock filter | EC-COMP-006–007 |
 | Not this | EC-COMP-008 |
 | Honesty | EC-COMP-009–011; G-TTS, G-SCORE, G-PHOTO |
+| Quality tab | EC-QTY-001–005 |
+| Fit tab | EC-FIT-001–005 |
 | Bag | EC-COMP-012 |
 | Route vs `:id` | EC-COMP-019 |
 
-**Independent PM task (~10 min):** Sujata → Compare dresses → scan photos (same garment) → In stock only → Not this → bag. Then kurtas (no Anouk discontinued). Switch to Kabir → shirts.
+**Independent PM task (~12 min):** Sujata → Compare dresses (price / stars / note / Lowest here) → In stock only → Not this → bag. Quality & trust (fabric, quotes, 2 photos, no Compare link). My size (fit sentence, not watching size). Occasion (date). Kurtas (no Anouk discontinued). Switch to Kabir → shirts.
 
-**Fail if:** they think proto checkout is the 15% KPI; they see TTS or 8.4/10; they see a kids frock in Women dresses; they get a price-drop ping.
+**Fail if:** they think proto checkout is the 15% KPI; they see TTS, 8.4/10, or 87%; they see a kids frock in Women dresses; they see an inbox / ⚙️; they get a price-drop ping.
 
 ---
 
@@ -168,12 +174,11 @@ Automated (map to EdgeCases):
 | Check | Pass |
 |-------|------|
 | Skip tag | EC-TAG-001 |
-| No price-drop tag | EC-TAG-002 |
-| Exact size | EC-STK-002–003; G-SIZE |
-| Occasion batch | G-BATCH; EC-OCC-002 |
+| No price-drop / bookmark / how-it-looks | EC-TAG-002, EC-TAG-009 |
+| Date only after Occasion | EC-TAG-005–006 |
 | Dead never push | G-PUSH |
-| Immediate OFF | G-PREF = 0 in the sample window |
-| OPT | ≤20% after a meaningful window (not day-0 of proto) |
+| No shopper inbox / ⚙️ | G-INBOX |
+| Fit is a sentence | G-FIT |
 
 ---
 
@@ -192,11 +197,12 @@ When `shop.internal_orders` is on:
 | ID | Feature | Eval focus |
 |----|---------|------------|
 | **F-CMP** | Compare | CMP-OPEN, CMP-BAG, G-MIX, G-DEAD, G-TTS, G-SCORE |
-| F1 | Context tag | TAG-ADOPT, skip, no price-drop option |
-| F3 | Restock | CTR-STK, G-SIZE |
-| F4 | Occasion | G-BATCH, filter deep link |
+| F1 | Context tag | TAG-ADOPT, skip, four live tags only |
+| F-Q | Quality & trust | EC-QTY, G-PHOTO, G-SCORE |
+| F-FIT | My size | EC-FIT, G-FIT |
+| F4 | Occasion | Tab + optional date; G-BATCH if worker runs |
 | F5 | Dead nudge | DEAD-ACT, G-PUSH, G-DEAD |
-| F6 | Prefs | OPT, ⚙️ |
+| F3 / F6 | Restock / prefs | API only; G-INBOX if chrome appears |
 | F2 | Price drop | **G-PD** (must be zero sends) |
 
 ---
@@ -206,13 +212,14 @@ When `shop.internal_orders` is on:
 | Phase | Must pass |
 |-------|-----------|
 | P0 | G-CART |
-| P1 | EC-TAG-001; EC-TAG-002 |
-| P2 | ⚙️ present |
+| P1 | EC-TAG-001; EC-TAG-002; EC-TAG-009 |
+| P2 | G-INBOX (no ⚙️ / inbox) |
 | P3 | G-PD |
 | P4 | G-SIZE |
 | P5 | G-BATCH; EC-OCC-001 |
 | P6 | G-PUSH |
 | P7 | G-MIX, G-DEAD, G-TTS, G-SCORE, CMP-SHOWN, bag from compare |
+| P8 | EC-QTY-001–005, EC-FIT-001–005, G-FIT, G-PHOTO |
 
 ---
 
@@ -225,8 +232,9 @@ When `shop.internal_orders` is on:
 | No fake cart % | |
 | F5 not a push | |
 | No price-drop send | |
-| No TTS / fake quality score | |
-| Photos are this SKU | |
+| No TTS / fake quality score / 87% | |
+| Photos are this SKU / type-matched | |
+| No shopper inbox / ⚙️ | |
 
 ### 11.2 PM demo
 
@@ -238,10 +246,11 @@ When `shop.internal_orders` is on:
 | Compare → bag | |
 | Dead Anouk not in compare | |
 | Kabir: shirts | |
-| Skip tag; no price-drop choice | |
-| Wrong size restock silent | |
-| Occasion batch | |
-| Dead card, empty bell | |
+| Skip tag; no price-drop / bookmark / how-it-looks | |
+| Quality tab: fabric, quotes, 2 photos, no Compare | |
+| My size: fit sentence, not watching size | |
+| Occasion tab + optional date | |
+| Dead card; no inbox | |
 
 ---
 
@@ -272,7 +281,7 @@ When `shop.internal_orders` is on:
 
 | Doc | Role |
 |-----|------|
-| PRD | North star = pick among same-type saves; F-CMP + companions |
+| PRD | North star = hesitant buyer decides (compare + quality + fit + occasion) |
 | Architecture | Derived clusters, APIs, policy CMP1–5 |
 | Implementation | P7 work + demo |
 | EdgeCases | `EC-COMP-*`; eval assumes S0/S1 pass |
@@ -287,5 +296,6 @@ When `shop.internal_orders` is on:
 | 2.0 | Discovery-engine eval (retired) |
 | 3.0 | Wishlist F1–F6 cart/CTR eval (superseded as ship bar) |
 | 4.0 | Comparison MVP: CMP-OPEN / CMP-BAG; G-PD; no fake 15% |
+| 5.0 | Adds Quality / fit / Occasion eval (Q8–Q11); G-INBOX; G-FIT; compare cards without colour/design columns |
 
 If clustering rules or honesty constraints change, update §3 and §6 in the same change.

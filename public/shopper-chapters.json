@@ -1,81 +1,86 @@
 [
   {
-    "t": 0.8,
+    "t": 7.9,
     "step": "Home",
     "line": "Browsing Women — Men, Kids, Beauty, and GenZ sit in the bar."
   },
   {
-    "t": 9.6,
+    "t": 16.6,
     "step": "Size chart",
     "line": "Apparel listings have a size chart. Sarees and accessories skip it."
   },
   {
-    "t": 14.8,
+    "t": 21.8,
     "step": "Save to wishlist",
     "line": "Heart tap to save — not Add to Bag."
   },
   {
-    "t": 16.4,
+    "t": 23.4,
     "step": "Why are you saving this?",
     "line": "Four reasons at the heart tap: Check quality first, Check the fit, Compare, or Upcoming Occasion. Skip is allowed."
   },
   {
-    "t": 18.2,
+    "t": 25.2,
     "step": "Compare",
     "line": "Choosing Compare — same-type saves sit side by side later."
   },
   {
-    "t": 20.9,
+    "t": 27.8,
     "step": "View in wishlist",
     "line": "After the heart, a button takes you to that save."
   },
   {
-    "t": 23.5,
+    "t": 30.4,
     "step": "Wishlist tabs",
     "line": "All · Compare · Quality & trust · My size · Occasion · No longer available — filtered by Women."
   },
   {
-    "t": 26.5,
+    "t": 33.4,
     "step": "Quality & trust",
-    "line": "Fabric, customer stars, N reviews, quality comments, and two real photos."
+    "line": "Fabric, stars, 150+ reviews, quality/colour/texture quotes, and Real customer photos."
   },
   {
-    "t": 29.7,
+    "t": 36.5,
     "step": "My size",
     "line": "Fit from past buys — a sentence, not a stock watch."
   },
   {
-    "t": 32.9,
+    "t": 39.6,
     "step": "Occasion",
     "line": "When will you wear it — named occasion, optional date, countdown."
   },
   {
-    "t": 41.9,
+    "t": 48.3,
     "step": "Compare dresses",
     "line": "Same-type dresses: price, stars, ratings, a quality note, Lowest here, and Buy this."
   },
   {
-    "t": 50,
+    "t": 56.3,
     "step": "Category filter",
     "line": "MEN · WOMEN · KIDS · BEAUTY · GENZ — the list never mixes categories."
   },
   {
-    "t": 55,
+    "t": 61.1,
     "step": "Shop as",
     "line": "Three shoppers on home — Sujata, Priya, Kabir."
   },
   {
-    "t": 58.3,
+    "t": 64.3,
     "step": "Bag",
-    "line": "Moving a saved dress to bag — recs stay on this page."
+    "line": "Moving a saved dress to bag — you can add more than one; recs stay on this page."
   },
   {
-    "t": 64.6,
+    "t": 73.3,
+    "step": "Multi-item bag",
+    "line": "Second MOVE TO BAG keeps the first — bag holds more than one line."
+  },
+  {
+    "t": 76.3,
     "step": "Checkout",
     "line": "Place order opens address and UPI or COD — then Pay."
   },
   {
-    "t": 69.6,
+    "t": 81.2,
     "step": "Order",
     "line": "Pay completes the order."
   }

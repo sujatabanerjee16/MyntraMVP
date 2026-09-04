@@ -242,10 +242,11 @@ textarea {
 
 .wishlist-card {
   display: grid;
-  grid-template-columns: 108px 1fr;
+  grid-template-columns: 108px minmax(0, 1fr);
   gap: 12px;
   position: relative;
   box-shadow: none;
+  align-items: start;
 }
 
 .thumb {

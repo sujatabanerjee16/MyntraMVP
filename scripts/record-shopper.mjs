@@ -163,8 +163,8 @@ try {
   );
   await clickHuman(page, by("tab", { name: /Quality & trust/ }));
   await sleep(1400);
-  await setCaption(page, "Quality & trust", "Fabric, customer stars, N reviews, quality comments, and two real photos.");
-  mark("Quality & trust", "Fabric, customer stars, N reviews, quality comments, and two real photos.");
+  await setCaption(page, "Quality & trust", "Fabric, stars, 150+ reviews, quality/colour/texture quotes, and Real customer photos.");
+  mark("Quality & trust", "Fabric, stars, 150+ reviews, quality/colour/texture quotes, and Real customer photos.");
   await sleep(1600);
   await clickHuman(page, by("tab", { name: /My size/ }));
   await setCaption(page, "My size", "Fit from past buys — a sentence, not a stock watch.");
@@ -210,8 +210,8 @@ try {
   await page.getByRole("option", { name: /Kabir/ }).waitFor();
   await sleep(1600);
 
-  await setCaption(page, "Bag", "Moving a saved dress to bag — recs stay on this page.");
-  mark("Bag", "Moving a saved dress to bag — recs stay on this page.");
+  await setCaption(page, "Bag", "Moving a saved dress to bag — you can add more than one; recs stay on this page.");
+  mark("Bag", "Moving a saved dress to bag — you can add more than one; recs stay on this page.");
   await clickHuman(page, by("button", { name: "Wishlist", exact: true }));
   await by("heading", { name: "Wishlist" }).waitFor();
   await clickHuman(page, by("tab", { name: /Quality & trust/ }));
@@ -220,7 +220,22 @@ try {
   await clickHuman(page, qualityCard.getByRole("button", { name: "MOVE TO BAG" }));
   await by("heading", { name: "Shopping Bag" }).waitFor();
   await by("heading", { name: "Recommended for this purchase" }).waitFor();
-  await sleep(1600);
+  await sleep(1200);
+  await clickHuman(page, by("button", { name: "Back" }));
+  await by("heading", { name: "Wishlist" }).waitFor();
+  await clickHuman(page, by("tab", { name: /^All/ }));
+  const secondBag = page.locator("article.wishlist-card").filter({ has: by("button", { name: "MOVE TO BAG" }) }).first();
+  if (await secondBag.count()) {
+    await setCaption(page, "Multi-item bag", "Second MOVE TO BAG keeps the first — bag holds more than one line.");
+    mark("Multi-item bag", "Second MOVE TO BAG keeps the first — bag holds more than one line.");
+    await clickHuman(page, secondBag.getByRole("button", { name: "MOVE TO BAG" }));
+    await by("heading", { name: "Shopping Bag" }).waitFor();
+    await sleep(1400);
+  } else {
+    await clickHuman(page, by("button", { name: "Bag" }));
+    await by("heading", { name: "Shopping Bag" }).waitFor();
+    await sleep(900);
+  }
   await setCaption(page, "Checkout", "Place order opens address and UPI or COD — then Pay.");
   mark("Checkout", "Place order opens address and UPI or COD — then Pay.");
   await clickHuman(page, by("button", { name: "Place order" }));

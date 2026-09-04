@@ -125,7 +125,7 @@
         <div class="clock" id="clock">0:00 / 0:00</div>
       </div>
       <div class="player">
-        <video id="vid" src="/shopper-experience.webm" autoplay muted playsinline></video>
+        <video id="vid" src="/shopper-experience.webm?v=20260904b" autoplay muted playsinline></video>
         <div class="caption">
           <p class="step" id="step">Home</p>
           <p id="line">Browsing Myntra like a shopper.</p>
@@ -139,24 +139,36 @@
       </div>
     </div>
     <script>
-      const chapters = [
+      let chapters = [
         { t: 0, step: "Home", line: "Browsing Women — Men, Kids, Beauty, and GenZ sit in the bar." },
-        { t: 9.6, step: "Size chart", line: "Apparel listings have a size chart. Sarees and accessories skip it." },
-        { t: 14.8, step: "Save to wishlist", line: "Heart tap to save — not Add to Bag." },
-        { t: 16.4, step: "Why are you saving this?", line: "Four reasons at the heart tap: Check quality first, Check the fit, Compare, or Upcoming Occasion. Skip is allowed." },
-        { t: 18.2, step: "Compare", line: "Choosing Compare — same-type saves sit side by side later." },
-        { t: 20.9, step: "View in wishlist", line: "After the heart, a button takes you to that save." },
-        { t: 23.5, step: "Wishlist tabs", line: "All · Compare · Quality & trust · My size · Occasion · No longer available — filtered by Women." },
-        { t: 26.5, step: "Quality & trust", line: "Fabric, customer stars, N reviews, quality comments, and two real photos." },
-        { t: 29.7, step: "My size", line: "Fit from past buys — a sentence, not a stock watch." },
-        { t: 32.9, step: "Occasion", line: "When will you wear it — named occasion, optional date, countdown." },
-        { t: 41.9, step: "Compare dresses", line: "Same-type dresses: price, stars, a quality note, Lowest here, and Buy this." },
-        { t: 50, step: "Category filter", line: "MEN · WOMEN · KIDS · BEAUTY · GENZ — the list never mixes categories." },
-        { t: 55, step: "Shop as", line: "Three shoppers on home — Sujata, Priya, Kabir." },
-        { t: 58.3, step: "Bag", line: "Moving a saved dress to bag — recs stay on this page." },
-        { t: 64.6, step: "Checkout", line: "Place order opens address and UPI or COD — then Pay." },
-        { t: 69.6, step: "Order", line: "Pay completes the order." },
+        { t: 7.9, step: "Home", line: "Browsing Women — Men, Kids, Beauty, and GenZ sit in the bar." },
+        { t: 16.6, step: "Size chart", line: "Apparel listings have a size chart. Sarees and accessories skip it." },
+        { t: 21.8, step: "Save to wishlist", line: "Heart tap to save — not Add to Bag." },
+        { t: 23.4, step: "Why are you saving this?", line: "Four reasons at the heart tap: Check quality first, Check the fit, Compare, or Upcoming Occasion. Skip is allowed." },
+        { t: 25.2, step: "Compare", line: "Choosing Compare — same-type saves sit side by side later." },
+        { t: 27.8, step: "View in wishlist", line: "After the heart, a button takes you to that save." },
+        { t: 30.4, step: "Wishlist tabs", line: "All · Compare · Quality & trust · My size · Occasion · No longer available — filtered by Women." },
+        { t: 33.4, step: "Quality & trust", line: "Fabric, stars, 150+ reviews, quality/colour/texture quotes, and Real customer photos." },
+        { t: 36.5, step: "My size", line: "Fit from past buys — a sentence, not a stock watch." },
+        { t: 39.6, step: "Occasion", line: "When will you wear it — named occasion, optional date, countdown." },
+        { t: 48.3, step: "Compare dresses", line: "Same-type dresses: price, stars, ratings, a quality note, Lowest here, and Buy this." },
+        { t: 56.3, step: "Category filter", line: "MEN · WOMEN · KIDS · BEAUTY · GENZ — the list never mixes categories." },
+        { t: 61.1, step: "Shop as", line: "Three shoppers on home — Sujata, Priya, Kabir." },
+        { t: 64.3, step: "Bag", line: "Moving a saved dress to bag — you can add more than one; recs stay on this page." },
+        { t: 73.3, step: "Multi-item bag", line: "Second MOVE TO BAG keeps the first — bag holds more than one line." },
+        { t: 76.3, step: "Checkout", line: "Place order opens address and UPI or COD — then Pay." },
+        { t: 81.2, step: "Order", line: "Pay completes the order." },
       ];
+
+      fetch("/shopper-chapters.json?v=20260904b")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((rows) => {
+          if (Array.isArray(rows) && rows.length) {
+            chapters = [{ t: 0, step: rows[0].step, line: rows[0].line }, ...rows];
+            paint();
+          }
+        })
+        .catch(() => {});
 
       const vid = document.getElementById("vid");
       const playBtn = document.getElementById("play");

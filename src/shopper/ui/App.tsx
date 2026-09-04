@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { unwrap, type WishlistView } from "../api";
 import type { JeansLook } from "../domain/jeansLooks";
 import { lookKindLabel, lookKindOf, lookSourceLabel, pairingAllowed } from "../domain/jeansLooks";
-import { compareCards, compareClusters, parseClusterKey, recommendFromHistory } from "../domain/compare";
+import { compareCards, compareClusters, recommendFromHistory } from "../domain/compare";
 import { qualityBrief } from "../domain/qualityTrust";
 import { fitFromPastBuys } from "../domain/fitJudgement";
 import { occasionBrief } from "../domain/occasionBrief";
@@ -324,7 +324,6 @@ function Shell() {
     ? searchCatalog(query, searchInCat ? activeCat : undefined)
     : UNSAVED_CATALOG.filter((row) => row.category === activeCat);
   const allSaved = [...wishlist, ...restocking, ...dead];
-  const compareGroups = compareClusters([...wishlist, ...restocking]);
   const savedByProduct = new Map(allSaved.map((row) => [row.productId, row.id]));
   const savedTags = new Map(allSaved.map((row) => [row.productId, row.tag]));
 
@@ -512,26 +511,6 @@ function Shell() {
                   <span className="meta">{persona.email}</span>
                 </div>
               </div>
-              {compareGroups.length ? (
-                <div className="drawer-compares">
-                  <p className="drawer-kicker">Compare your saves</p>
-                  {compareGroups.map((cluster) => (
-                    <button
-                      key={cluster.key}
-                      type="button"
-                      className="drawer-compare-link"
-                      onClick={() => {
-                        const parsed = parseClusterKey(cluster.key);
-                        if (parsed) setActiveCat(parsed.category);
-                        setDrawerOpen(false);
-                        setScreen({ name: "compare", clusterKey: cluster.key });
-                      }}
-                    >
-                      {cluster.label}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
               {wishlist.length ? (
                 <div className="drawer-saves">
                   <p className="drawer-kicker">From your wishlist</p>
@@ -1007,16 +986,16 @@ function ArrivalCard({
               </button>
             )
           ) : (
-            <>
-              <button type="button" className="wish-cta is-bag" onClick={() => onAddToBag(chosen)}>
-                Add to Bag
-              </button>
-              {savedId ? (
-                <button type="button" className="wish-cta is-notify" onClick={() => onOpenWishlist(savedId)}>
-                  View in wishlist
-                </button>
-              ) : null}
-            </>
+            <button type="button" className="wish-cta is-bag" onClick={() => onAddToBag(chosen)}>
+              Add to Bag
+            </button>
+          )}
+          {!chosen.sizeOos && savedId ? (
+            <button type="button" className="wish-cta is-notify" onClick={() => onOpenWishlist(savedId)}>
+              View in wishlist
+            </button>
+          ) : (
+            <span className="trend-action-slot" aria-hidden="true" />
           )}
         </div>
       </div>
@@ -1670,41 +1649,45 @@ function WishlistCard({
         onClick={() => onOpenPdp(item.id)}
       />
       <div className="wish-meta">
-        <strong>{item.catalog.brand.toUpperCase()}</strong>
-        <div className="wish-title">{item.catalog.title}</div>
-        {catalogRow?.description ? <p className="wish-desc">{catalogRow.description}</p> : null}
-        <div className="trend-price-row">
-          <div className="price">{formatInr(item.currentPrice)}</div>
-          {item.stockStatus === "discontinued" ? null : isLiveTag(item.tag) ? (
-            <button
-              type="button"
-              className={`tag-chip tag-${item.tag}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                onEditTag(item.id);
-              }}
-            >
-              {TAG_EMOJI[item.tag]} {TAG_LABEL[item.tag]}
+        <div className="wish-meta-top">
+          <strong>{item.catalog.brand.toUpperCase()}</strong>
+          <div className="wish-title">{item.catalog.title}</div>
+          <p className="wish-desc">{catalogRow?.description || "\u00a0"}</p>
+          <div className="trend-price-row">
+            <div className="price">{formatInr(item.currentPrice)}</div>
+            {item.stockStatus === "discontinued" ? null : isLiveTag(item.tag) ? (
+              <button
+                type="button"
+                className={`tag-chip tag-${item.tag}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onEditTag(item.id);
+                }}
+              >
+                {TAG_EMOJI[item.tag]} {TAG_LABEL[item.tag]}
+              </button>
+            ) : (
+              <button type="button" className="tag-chip is-add" onClick={() => onEditTag(item.id)}>
+                + Why you saved this
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="wish-meta-actions">
+          {item.stockStatus === "discontinued" ? null : item.stockStatus === "in_stock" ? (
+            <button type="button" className={`wish-cta is-bag${focused ? " is-highlight" : ""}`} onClick={() => onAddToBag(item.id)}>
+              MOVE TO BAG
             </button>
           ) : (
-            <button type="button" className="tag-chip is-add" onClick={() => onEditTag(item.id)}>
-              + Why you saved this
+            <button type="button" className="wish-cta is-notify" disabled>
+              {item.sizeWatch?.size ? `Watching size ${item.sizeWatch.size}` : "Out of stock"}
             </button>
           )}
+          <div className={item.stockStatus === "in_stock" ? "meta" : "oos"}>
+            {item.stockStatus === "discontinued" ? "No longer sold" : stockLine(item)}
+          </div>
+          <SizeChartLink title={item.catalog.title} category={allCatalog().find((row) => row.productId === item.productId)?.category} />
         </div>
-        {item.stockStatus === "discontinued" ? null : item.stockStatus === "in_stock" ? (
-          <button type="button" className={`wish-cta is-bag${focused ? " is-highlight" : ""}`} onClick={() => onAddToBag(item.id)}>
-            MOVE TO BAG
-          </button>
-        ) : (
-          <button type="button" className="wish-cta is-notify" disabled>
-            {item.sizeWatch?.size ? `Watching size ${item.sizeWatch.size}` : "Out of stock"}
-          </button>
-        )}
-        <div className={item.stockStatus === "in_stock" ? "meta" : "oos"}>
-          {item.stockStatus === "discontinued" ? "No longer sold" : stockLine(item)}
-        </div>
-        <SizeChartLink title={item.catalog.title} category={allCatalog().find((row) => row.productId === item.productId)?.category} />
       </div>
     </article>
   );

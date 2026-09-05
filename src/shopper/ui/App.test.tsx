@@ -496,9 +496,24 @@ describe("wishlist mvp1", () => {
     expect(within(panel).getByText("From your wishlist")).toBeTruthy();
     expect(within(panel).queryByText("Shop as")).toBeNull();
     expect(within(panel).getByRole("button", { name: "Back" })).toBeTruthy();
-    expect(within(panel).getByRole("button", { name: /\d+ sarees in Women/ })).toBeTruthy();
+    expect(within(panel).queryByText("Compare your saves")).toBeNull();
     expect(within(panel).getByAltText("Regular Fit Linen Shirt").getAttribute("src")).toMatch(/linen-product/);
     expect(within(panel).getByText("H&M")).toBeTruthy();
+  });
+
+  it("resets the shopper back to Sujata home state", async () => {
+    const user = userEvent.setup();
+    render(<ShopperApp runtime={createShopperRuntime()} />);
+
+    await user.click(screen.getByRole("button", { name: "Bag" }));
+    expect(screen.getByRole("heading", { name: "Shopping Bag" })).toBeTruthy();
+
+    await resetDemo(user);
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Profiles" })).toBeTruthy();
+      expect(screen.getByText(/Sujata · 28 · Bengaluru/)).toBeTruthy();
+    });
+    expect(screen.queryByRole("heading", { name: "Shopping Bag" })).toBeNull();
   });
 
   it("switches shopper from the demo menu", async () => {

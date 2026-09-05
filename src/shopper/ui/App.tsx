@@ -239,20 +239,33 @@ function Shell() {
       setDrawerOpen(false);
       setCouponOn(false);
       setScreen({ name: "home" });
+      try {
+        setData(readShopper(runtime));
+      } catch {
+        refresh();
+        return;
+      }
       refresh();
     });
   }
 
   function resetDemo() {
     void Promise.resolve(runtime.reset()).then(() => {
-      setPersonaId("sujata");
+      const next = runtime.store.persona();
+      setPersonaId(next.id);
       setSheet(null);
       setDrawerOpen(false);
       setCouponOn(false);
       setQuery("");
       setSearchInCat(false);
-      setActiveCat("WOMEN");
+      setActiveCat(next.defaultCat);
       setScreen({ name: "home" });
+      try {
+        setData(readShopper(runtime));
+      } catch {
+        refresh();
+        return;
+      }
       refresh();
     });
   }
